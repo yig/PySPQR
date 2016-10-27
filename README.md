@@ -1,7 +1,7 @@
 # Python wrapper for SuiteSparseQR
 
-This module wraps the (SuiteSparseQR)[http://faculty.cse.tamu.edu/davis/suitesparse.html]
-decomposition function for use with (SciPy)[http://www.scipy.org].
+This module wraps the [SuiteSparseQR](http://faculty.cse.tamu.edu/davis/suitesparse.html)
+decomposition function for use with [SciPy](http://www.scipy.org).
 This is Matlab's sparse `[Q,R,E] = qr()`.
 Until now, no one wrapped that function of SuiteSparse.
 
@@ -18,9 +18,9 @@ Copy these two files next to your source code.
 
 # Dependencies
 
-* SciPy/NumPy
-* SuiteSparseQR (`brew install suitesparse`)
-* cffi (`pip install cffi`)
+* (SciPy/NumPy)[http://www.scipy.org]
+* [SuiteSparseQR](http://faculty.cse.tamu.edu/davis/suitesparse.html) (`brew install suitesparse`)
+* [cffi](http://cffi.readthedocs.io/) (`pip install cffi`)
 
 # License
 
