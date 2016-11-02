@@ -18,7 +18,7 @@ Copy these two files next to your source code.
 
 # Dependencies
 
-* (SciPy/NumPy)[http://www.scipy.org]
+* [SciPy/NumPy](http://www.scipy.org)
 * [SuiteSparseQR](http://faculty.cse.tamu.edu/davis/suitesparse.html) (`brew install suitesparse`)
 * [cffi](http://cffi.readthedocs.io/) (`pip install cffi`)
 
