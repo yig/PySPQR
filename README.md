@@ -3,7 +3,7 @@
 This module wraps the [SuiteSparseQR](http://faculty.cse.tamu.edu/davis/suitesparse.html)
 decomposition function for use with [SciPy](http://www.scipy.org).
 This is Matlab's sparse `[Q,R,E] = qr()`.
-Until now, no one wrapped that function of SuiteSparse.
+For some reason, no one ever wrapped that function of SuiteSparseQR for Python.
 
 # Usage
 
