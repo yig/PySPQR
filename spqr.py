@@ -56,7 +56,8 @@ def scipy2choldmod( scipy_A ):
     
     chol_A.nnz = nnz
     
-    lib.cholmod_l_print_triplet( chol_A, "A", cc )
+    ## Print what cholmod sees as the matrix.
+    # lib.cholmod_l_print_triplet( chol_A, "A".encode('utf-8'), cc )
     assert lib.cholmod_l_check_triplet( chol_A, cc ) == 1
     
     ## Convert to a cholmod_sparse matrix.
