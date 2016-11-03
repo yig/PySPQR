@@ -18,6 +18,7 @@ except ImportError:
 
 import scipy.sparse
 import numpy
+import cffi_asarray
 
 '''
 Helpful links:
@@ -71,20 +72,28 @@ def cholmod2scipy( chol_A ):
     
     nnz = chol_A.nnz
     
-    i = numpy.zeros( nnz, dtype = numpy.int64 )
-    j = numpy.zeros( nnz, dtype = numpy.int64 )
-    data = numpy.zeros( nnz )
-    
     Ai = ffi.cast( "SuiteSparse_long*", chol_A.i )
     Aj = ffi.cast( "SuiteSparse_long*", chol_A.j )
     Adata = ffi.cast( "double*", chol_A.x )
     
-    ## Have to pass through list.
+    ## Have to pass through list().
     ## https://bitbucket.org/cffi/cffi/issues/292/cant-copy-data-to-a-numpy-array
     ## http://stackoverflow.com/questions/16276268/how-to-pass-a-numpy-array-into-a-cffi-function-and-how-to-get-one-back-out
+    '''
+    i = numpy.zeros( nnz, dtype = numpy.int64 )
+    j = numpy.zeros( nnz, dtype = numpy.int64 )
+    data = numpy.zeros( nnz )
+    
     i[0:nnz] = list( Ai[0:nnz] )
     j[0:nnz] = list( Aj[0:nnz] )
     data[0:nnz] = list( Adata[0:nnz] )
+    '''
+    ## UPDATE: I can do this without going through list() or making two extra copies.
+    ## NOTE: Create a copy() of the array data, because the coo_matrix() constructor
+    ##       doesn't and the cholmod memory fill get freed.
+    i = cffi_asarray.asarray( ffi, Ai, nnz ).copy()
+    j = cffi_asarray.asarray( ffi, Aj, nnz ).copy()
+    data = cffi_asarray.asarray( ffi, Adata, nnz ).copy()
     
     scipy_A = scipy.sparse.coo_matrix(
         ( data, ( i, j ) ),
@@ -135,11 +144,13 @@ def qr( A ):
     if chol_E == ffi.NULL:
         E = None
     else:
-        E = numpy.zeros( A.shape[1], dtype = int )
-        ## Have to pass through list.
+        ## Have to pass through list().
         ## https://bitbucket.org/cffi/cffi/issues/292/cant-copy-data-to-a-numpy-array
         ## http://stackoverflow.com/questions/16276268/how-to-pass-a-numpy-array-into-a-cffi-function-and-how-to-get-one-back-out
-        E[0:A.shape[1]] = list( chol_E[0][0:A.shape[1]] )
+        # E = numpy.zeros( A.shape[1], dtype = int )
+        # E[0:A.shape[1]] = list( chol_E[0][0:A.shape[1]] )
+        ## UPDATE: I can do this without going through list() or making two extra copies.
+        E = cffi_asarray.asarray( ffi, chol_E[0], A.shape[1] ).copy()
     
     ## Free cholmod stuff
     lib.cholmod_l_free_sparse( chol_Q, cc )
