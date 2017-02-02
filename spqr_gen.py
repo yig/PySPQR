@@ -9,9 +9,11 @@ from cffi import FFI
 ffibuilder = FFI()
 
 ffibuilder.set_source( "_spqr",
-    """
-#include <SuiteSparseQR_C.h>
+    """#include <SuiteSparseQR_C.h>
 """,
+    ## You may need to modify the following line,
+    ## which is needed on Ubuntu and harmless on Mac OS.
+    include_dirs = [ '/usr/include/suitesparse' ],
     libraries=['spqr'])
 
 ffibuilder.cdef("""

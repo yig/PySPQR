@@ -21,6 +21,8 @@ or leave them in this directory and call it as a module.
 
 Tested on Python 2.7 and 3.5.
 
+Tested on Mac OS X and Ubuntu Linux.
+
 # Dependencies
 
 * [SciPy/NumPy](http://www.scipy.org)
