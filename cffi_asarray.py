@@ -32,22 +32,22 @@ def asarray( ffi, ptr, length ):
     T = ffi.getctype( ffi.typeof( ptr ).item )
     # print( T )
     # print( ffi.sizeof( T ) )
-    
+
     if T not in ctype2dtype:
         raise RuntimeError( "Cannot create an array for element type: %s" % T )
-    
+
     return numpy.frombuffer( ffi.buffer( ptr, length*ffi.sizeof( T ) ), ctype2dtype[T] )
 
 def test():
     from cffi import FFI
     ffi = FFI()
-    
+
     N = 10
     ptr = ffi.new( "float[]", N )
-    
+
     arr = asarray( ffi, ptr, N )
     arr[:] = numpy.arange( N )
-    
+
     for i in range( N ):
         print( arr[i], ptr[i] )
 
