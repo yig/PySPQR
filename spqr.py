@@ -37,7 +37,7 @@ lib.cholmod_l_start( cc )
 def deinit():
     lib.cholmod_l_finish( cc )
 
-def scipy2choldmod( scipy_A ):
+def scipy2cholmod( scipy_A ):
     scipy_A = scipy_A.tocoo()
 
     nnz = scipy_A.nnz
@@ -122,9 +122,9 @@ def qr( A, tolerance = None ):
         #define SPQR_DEFAULT_TOL ...       /* if tol <= -2, the default tol is used */
         #define SPQR_NO_TOL ...            /* if -2 < tol < 0, then no tol is used */
     '''
-    
-    chol_A = scipy2choldmod( A )
-    
+
+    chol_A = scipy2cholmod( A )
+
     chol_Q = ffi.new("cholmod_sparse**")
     chol_R = ffi.new("cholmod_sparse**")
     chol_E = ffi.new("SuiteSparse_long**")
