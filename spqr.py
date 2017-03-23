@@ -35,9 +35,14 @@ cc = ffi.new("cholmod_common*")
 lib.cholmod_l_start( cc )
 
 def deinit():
+    '''Deinitialize the CHOLMOD library.'''
     lib.cholmod_l_finish( cc )
 
 def scipy2cholmod( scipy_A ):
+    '''Convert a SciPy sparse matrix to a CHOLMOD sparse matrix.
+
+    The input is first internally converted to scipy.sparse.coo_matrix format.
+    '''
     scipy_A = scipy_A.tocoo()
 
     nnz = scipy_A.nnz
@@ -68,6 +73,7 @@ def scipy2cholmod( scipy_A ):
     return result
 
 def cholmod2scipy( chol_A ):
+    '''Convert a CHOLMOD sparse matrix to a scipy.sparse.coo_matrix.'''
     ## Convert to a cholmod_triplet matrix.
     chol_A = lib.cholmod_l_sparse_to_triplet( chol_A, cc )
 
@@ -107,6 +113,7 @@ def cholmod2scipy( chol_A ):
     return scipy_A
 
 def cholmod_free_triplet( A ):
+    '''Deallocate a CHOLMOD triplet format matrix.'''
     A_ptr = ffi.new("cholmod_triplet**")
     A_ptr[0] = A
     lib.cholmod_l_free_triplet( A_ptr, cc )
@@ -121,6 +128,8 @@ def qr( A, tolerance = None ):
     If optional `tolerance` parameter is negative, it has the following meanings:
         #define SPQR_DEFAULT_TOL ...       /* if tol <= -2, the default tol is used */
         #define SPQR_NO_TOL ...            /* if -2 < tol < 0, then no tol is used */
+
+    The performance-optimal format for A is scipy.sparse.coo_matrix.
     '''
 
     chol_A = scipy2cholmod( A )
@@ -168,6 +177,7 @@ def qr( A, tolerance = None ):
     return scipy_Q, scipy_R, E, rank
 
 def permutation_from_E( E ):
+    '''Convert permutation vector E (length n) to permutation matrix (n by n).'''
     n = len( E )
     j = numpy.arange( n )
     return scipy.sparse.coo_matrix( ( numpy.ones(n), ( E, j ) ), shape = ( n, n ) )
