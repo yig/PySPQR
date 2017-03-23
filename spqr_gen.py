@@ -114,6 +114,54 @@ int cholmod_l_free_sparse
     cholmod_common *Common
 ) ;
 
+/* ========================================================================== */
+/* === Core/cholmod_dense =================================================== */
+/* ========================================================================== */
+
+/* A dense matrix in column-oriented form.  It has no itype since it contains
+ * no integers.  Entry in row i and column j is located in x [i+j*d].
+ */
+
+typedef struct cholmod_dense_struct
+{
+    size_t nrow ;	/* the matrix is nrow-by-ncol */
+    size_t ncol ;
+    size_t nzmax ;	/* maximum number of entries in the matrix */
+    size_t d ;		/* leading dimension (d >= nrow must hold) */
+    void *x ;		/* size nzmax or 2*nzmax, if present */
+    void *z ;		/* size nzmax, if present */
+    int xtype ;		/* pattern, real, complex, or zomplex */
+    int dtype ;		/* x and z double or float */
+
+} cholmod_dense ;
+
+/* -------------------------------------------------------------------------- */
+/* cholmod_allocate_dense:  allocate a dense matrix (contents uninitialized) */
+/* -------------------------------------------------------------------------- */
+
+cholmod_dense *cholmod_l_allocate_dense
+(
+    /* ---- input ---- */
+    size_t nrow,	/* # of rows of matrix */
+    size_t ncol,	/* # of columns of matrix */
+    size_t d,		/* leading dimension */
+    int xtype,		/* CHOLMOD_REAL, _COMPLEX, or _ZOMPLEX */
+    /* --------------- */
+    cholmod_common *Common
+) ;
+
+/* -------------------------------------------------------------------------- */
+/* cholmod_free_dense:  free a dense matrix */
+/* -------------------------------------------------------------------------- */
+
+int cholmod_l_free_dense
+(
+    /* ---- in/out --- */
+    cholmod_dense **X,	/* dense matrix to deallocate, NULL on output */
+    /* --------------- */
+    cholmod_common *Common
+) ;
+
 /*
  * ============================================================================
  * === cholmod_triplet ========================================================
@@ -229,6 +277,16 @@ SuiteSparse_long SuiteSparseQR_C_QR /* returns rank(A) est., (-1) if failure */
     cholmod_sparse **Q,         /* m-by-e sparse matrix */
     cholmod_sparse **R,         /* e-by-n sparse matrix */
     SuiteSparse_long **E,       /* size n column perm, NULL if identity */
+    cholmod_common *cc          /* workspace and parameters */
+) ;
+
+/* X = A\B where B is dense */
+cholmod_dense *SuiteSparseQR_C_backslash    /* returns X, NULL if failure */
+(
+    int ordering,               /* all, except 3:given treated as 0:fixed */
+    double tol,                 /* columns with 2-norm <= tol treated as 0 */
+    cholmod_sparse *A,          /* m-by-n sparse matrix */
+    cholmod_dense  *B,          /* m-by-k */
     cholmod_common *cc          /* workspace and parameters */
 ) ;
 

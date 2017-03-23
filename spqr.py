@@ -72,6 +72,30 @@ def scipy2cholmod( scipy_A ):
 
     return result
 
+def numpy2cholmoddense( numpy_A ):
+    '''Convert a NumPy array (rank-1 or rank-2) to a CHOLMOD dense matrix.'''
+    numpy_A = numpy.atleast_2d( numpy_A )
+    if numpy_A.shape[0] == 1 and numpy_A.shape[1] > 1:  # prefer column vector
+        numpy_A = numpy_A.T
+    nrow = numpy_A.shape[0]
+    ncol = numpy_A.shape[1]
+    lda  = nrow  # cholmod_dense is column-oriented
+    chol_A = lib.cholmod_l_allocate_dense( nrow, ncol, lda, lib.CHOLMOD_REAL, cc )
+    if chol_A == ffi.NULL:
+        raise RuntimeError("Failed to allocate chol_A")
+    Adata = ffi.cast( "double*", chol_A.x )
+    for j in range(ncol):  # FIXME inefficient?
+        Adata[(j*lda):((j+1)*lda)] = numpy_A[:,j]
+    return chol_A
+
+def cholmoddense2numpy( chol_A ):
+    '''Convert a CHOLMOD dense matrix to a NumPy array.'''
+    Adata = ffi.cast( "double*", chol_A.x )
+
+    result = cffi_asarray.asarray( ffi, Adata, chol_A.nrow*chol_A.ncol )
+    result = result.reshape( (chol_A.nrow, chol_A.ncol), order='F' )
+    return numpy.squeeze(result)
+
 def cholmod2scipy( chol_A ):
     '''Convert a CHOLMOD sparse matrix to a scipy.sparse.coo_matrix.'''
     ## Convert to a cholmod_triplet matrix.
@@ -130,6 +154,26 @@ def qr( A, tolerance = None ):
         #define SPQR_NO_TOL ...            /* if -2 < tol < 0, then no tol is used */
 
     The performance-optimal format for A is scipy.sparse.coo_matrix.
+
+    For solving systems of the form A x = b, see qr_solve().
+
+    qr() can also be used to solve systems, as follows:
+
+        # inputs: scipy.sparse.coo_matrix A, rank-1 numpy.array b (RHS)
+        import numpy
+        import scipy
+
+        Q, R, E, rank = spqr.qr( A )
+        k = min(A.shape)
+        R = R.tocsr()[:k,:]
+        Q = Q.tocsc()[:,:k]
+        Qb = (Q.T).dot(b)  # use .dot() (not numpy.dot()) since Q is sparse
+        result = scipy.sparse.linalg.spsolve(R, Qb)
+        x = numpy.empty_like(result)
+        x[E] = result[:]  # apply inverse permutation
+
+    Be aware that this approach is slow, because qr() explicitly constructs Q;
+    if you have only one or a few systems to solve, qr_solve() is usually faster.
     '''
 
     chol_A = scipy2cholmod( A )
@@ -176,6 +220,52 @@ def qr( A, tolerance = None ):
 
     return scipy_Q, scipy_R, E, rank
 
+def qr_solve( A, b, tolerance = None ):
+    '''
+    Given a sparse m-by-n matrix A, and dense m-by-k matrix (storing k RHS vectors) b,
+    solve A x = b in the least-squares sense.
+
+    This is much faster than using qr() to solve the system, since Q is not explicitly constructed.
+
+    Returns x on success, None on failure.
+
+    If optional `tolerance` parameter is negative, it has the following meanings:
+        #define SPQR_DEFAULT_TOL ...       /* if tol <= -2, the default tol is used */
+        #define SPQR_NO_TOL ...            /* if -2 < tol < 0, then no tol is used */
+    '''
+
+    chol_A = scipy2cholmod( A )
+    chol_b = numpy2cholmoddense( b )
+
+    if tolerance is None: tolerance = lib.SPQR_DEFAULT_TOL
+
+    chol_x = lib.SuiteSparseQR_C_backslash(
+        ## Input
+        lib.SPQR_ORDERING_DEFAULT,
+        tolerance,
+        chol_A,
+        chol_b,
+        cc )
+
+    if chol_x == ffi.NULL:
+        return None  # failed
+
+    numpy_x = cholmoddense2numpy( chol_x[0] )
+
+    ## Free cholmod stuff
+    pchol_A = ffi.new("cholmod_sparse**")
+    pchol_A[0] = chol_A
+    pchol_b = ffi.new("cholmod_dense**")
+    pchol_b[0] = chol_b
+    pchol_x = ffi.new("cholmod_dense**")
+    pchol_x[0] = chol_x
+
+    lib.cholmod_l_free_sparse( pchol_A, cc )
+    lib.cholmod_l_free_dense(  pchol_b, cc )
+    lib.cholmod_l_free_dense(  pchol_x, cc )
+
+    return numpy_x
+
 def permutation_from_E( E ):
     '''Convert permutation vector E (length n) to permutation matrix (n by n).'''
     n = len( E )
@@ -188,3 +278,8 @@ if __name__ == '__main__':
     M = scipy.sparse.rand( 10, 10, density = 0.1 )
     Q, R, E, rank = qr( M, tolerance = 0 )
     print( abs( Q*R - M*permutation_from_E(E) ).sum() )
+
+    M2 = scipy.sparse.rand( 10, 10, density = 0.1 )
+    b  = numpy.random.random(10)
+    x  = qr_solve( M, b, tolerance = 0 )
+    print( x )
