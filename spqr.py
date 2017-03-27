@@ -302,6 +302,49 @@ def qr_solve( A, b, tolerance = None ):
 
     return numpy_x
 
+def qr_solve_sparse( A, b, tolerance = None ):
+    '''
+    Given a sparse m-by-n matrix A, and sparse m-by-k matrix (storing k RHS vectors) b,
+    solve A x = b in the least-squares sense.
+
+    This is much faster than using qr() to solve the system, since Q is not explicitly constructed.
+
+    Returns x on success, None on failure.
+
+    The performance-optimal format for A and b is scipy.sparse.coo_matrix.
+
+    If optional `tolerance` parameter is negative, it has the following meanings:
+        #define SPQR_DEFAULT_TOL ...       /* if tol <= -2, the default tol is used */
+        #define SPQR_NO_TOL ...            /* if -2 < tol < 0, then no tol is used */
+    '''
+
+    chol_A = scipy2cholmodsparse( A )
+    chol_b = scipy2cholmodsparse( b )
+
+    if tolerance is None: tolerance = lib.SPQR_DEFAULT_TOL
+
+    chol_x = lib.SuiteSparseQR_C_backslash_sparse(
+        ## Input
+        lib.SPQR_ORDERING_DEFAULT,
+        tolerance,
+        chol_A,
+        chol_b,
+        cc )
+
+    if chol_x == ffi.NULL:
+        return None  # failed
+
+    scipy_x = cholmodsparse2scipy( chol_x )
+
+    ## Free cholmod stuff
+    cholmod_free_sparse( chol_A )
+    cholmod_free_sparse( chol_b )
+    cholmod_free_sparse( chol_x )
+
+    return scipy_x
+
+
+## Usage examples
 
 if __name__ == '__main__':
     # Q, R, E, rank = qr( scipy.sparse.identity(10) )
@@ -312,4 +355,8 @@ if __name__ == '__main__':
 
     b = numpy.random.random(10)  # one RHS, but could also have many (in shape (10,k))
     x = qr_solve( M, b, tolerance = 0 )
+    print( x )
+
+    B = scipy.sparse.rand( 10, 5, density = 0.1 )  # many RHS, sparse
+    x = qr_solve_sparse( M, B, tolerance = 0 )
     print( x )

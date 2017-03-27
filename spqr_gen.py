@@ -290,6 +290,17 @@ cholmod_dense *SuiteSparseQR_C_backslash    /* returns X, NULL if failure */
     cholmod_common *cc          /* workspace and parameters */
 ) ;
 
+ /* X = A\B where B is sparse */
+cholmod_sparse *SuiteSparseQR_C_backslash_sparse   /* returns X, or NULL */
+(
+    /* inputs: */
+    int ordering,               /* all, except 3:given treated as 0:fixed */
+    double tol,                 /* columns with 2-norm <= tol treated as 0 */
+    cholmod_sparse *A,          /* m-by-n sparse matrix */
+    cholmod_sparse *B,          /* m-by-k */
+    cholmod_common *cc          /* workspace and parameters */
+) ;
+
 #define SPQR_ORDERING_FIXED ...
 #define SPQR_ORDERING_NATURAL ...
 #define SPQR_ORDERING_COLAMD ...
