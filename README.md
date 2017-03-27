@@ -8,8 +8,9 @@ For some reason, no one ever wrapped that function of SuiteSparseQR for Python.
 # Usage
 
     # Perform QR decomposition of a sparse matrix
+    import numpy
+    import scipy
     import spqr
-    import scipy.sparse
     M = scipy.sparse.rand( 10, 10, density = 0.1 )
     Q, R, E, rank = spqr.qr( M )
     ## Should be approximately zero:
@@ -21,20 +22,20 @@ For some reason, no one ever wrapped that function of SuiteSparseQR for Python.
     #
     A = scipy.sparse.rand( 20, 10, density = 0.1 )  # 20 equations, 10 unknowns
     b = numpy.random.random(10)  # one RHS, but could also have many (in shape (10,k))
-    x = qr_solve( A, b, tolerance = 0 )
+    x = spqr.qr_solve( A, b, tolerance = 0 )
 
     # Solve many linear systems "M x = b for b in columns(B)"
     #
     B = scipy.sparse.rand( 10, 5, density = 0.1 )  # many RHS, sparse
-    x = qr_solve_sparse( M, B, tolerance = 0 )
+    x = spqr.qr_solve_sparse( M, B, tolerance = 0 )
 
     # Solve a system  M x = b  via QR decomposition
     #
     # This approach is slow due to explicit construction of Q, but may be
     # useful if a large number of systems need to be solved with the same M.
     #
-    import numpy
-    import scipy
+    # In this approach, R must not be exactly singular.
+    #
     Q, R, E, rank = spqr.qr( M )
     k = min(M.shape)
     R = R.tocsr()[:k,:]
