@@ -41,7 +41,10 @@ def _deinit():
 import atexit
 atexit.register(_deinit)
 
-def scipy2cholmod( scipy_A ):
+
+## Data format conversion
+
+def scipy2cholmodsparse( scipy_A ):
     '''Convert a SciPy sparse matrix to a CHOLMOD sparse matrix.
 
 The input is first internally converted to scipy.sparse.coo_matrix format.
@@ -73,35 +76,11 @@ When no longer needed, the returned CHOLMOD sparse matrix must be deallocated us
     ## Convert to a cholmod_sparse matrix.
     result = lib.cholmod_l_triplet_to_sparse( chol_A, nnz, cc )
     ## Free the space used by the cholmod triplet matrix.
-    cholmod_free_triplet( chol_A )
+    _cholmod_free_triplet( chol_A )
 
     return result
 
-def numpy2cholmoddense( numpy_A ):
-    '''Convert a NumPy array (rank-1 or rank-2) to a CHOLMOD dense matrix.'''
-    numpy_A = numpy.atleast_2d( numpy_A )
-    if numpy_A.shape[0] == 1 and numpy_A.shape[1] > 1:  # prefer column vector
-        numpy_A = numpy_A.T
-    nrow = numpy_A.shape[0]
-    ncol = numpy_A.shape[1]
-    lda  = nrow  # cholmod_dense is column-oriented
-    chol_A = lib.cholmod_l_allocate_dense( nrow, ncol, lda, lib.CHOLMOD_REAL, cc )
-    if chol_A == ffi.NULL:
-        raise RuntimeError("Failed to allocate chol_A")
-    Adata = ffi.cast( "double*", chol_A.x )
-    for j in range(ncol):  # FIXME inefficient?
-        Adata[(j*lda):((j+1)*lda)] = numpy_A[:,j]
-    return chol_A
-
-def cholmoddense2numpy( chol_A ):
-    '''Convert a CHOLMOD dense matrix to a NumPy array.'''
-    Adata = ffi.cast( "double*", chol_A.x )
-
-    result = cffi_asarray.asarray( ffi, Adata, chol_A.nrow*chol_A.ncol )
-    result = result.reshape( (chol_A.nrow, chol_A.ncol), order='F' )
-    return numpy.squeeze(result)
-
-def cholmod2scipy( chol_A ):
+def cholmodsparse2scipy( chol_A ):
     '''Convert a CHOLMOD sparse matrix to a scipy.sparse.coo_matrix.'''
     ## Convert to a cholmod_triplet matrix.
     chol_A = lib.cholmod_l_sparse_to_triplet( chol_A, cc )
@@ -137,15 +116,69 @@ def cholmod2scipy( chol_A ):
         )
 
     ## Free the space used by the cholmod triplet matrix.
-    cholmod_free_triplet( chol_A )
+    _cholmod_free_triplet( chol_A )
 
     return scipy_A
 
-def cholmod_free_triplet( A ):
+def numpy2cholmoddense( numpy_A ):
+    '''Convert a NumPy array (rank-1 or rank-2) to a CHOLMOD dense matrix.
+
+Rank-1 arrays are converted to column vectors.
+
+When no longer needed, the returned CHOLMOD sparse matrix must be deallocated using cholmod_free_dense().
+'''
+    numpy_A = numpy.atleast_2d( numpy_A )
+    if numpy_A.shape[0] == 1 and numpy_A.shape[1] > 1:  # prefer column vector
+        numpy_A = numpy_A.T
+    nrow = numpy_A.shape[0]
+    ncol = numpy_A.shape[1]
+    lda  = nrow  # cholmod_dense is column-oriented
+    chol_A = lib.cholmod_l_allocate_dense( nrow, ncol, lda, lib.CHOLMOD_REAL, cc )
+    if chol_A == ffi.NULL:
+        raise RuntimeError("Failed to allocate chol_A")
+    Adata = ffi.cast( "double*", chol_A.x )
+    for j in range(ncol):  # FIXME inefficient?
+        Adata[(j*lda):((j+1)*lda)] = numpy_A[:,j]
+    return chol_A
+
+def cholmoddense2numpy( chol_A ):
+    '''Convert a CHOLMOD dense matrix to a NumPy array.'''
+    Adata = ffi.cast( "double*", chol_A.x )
+
+    result = cffi_asarray.asarray( ffi, Adata, chol_A.nrow*chol_A.ncol )
+    result = result.reshape( (chol_A.nrow, chol_A.ncol), order='F' )
+    return numpy.squeeze(result)
+
+def permutation_from_E( E ):
+    '''Convert a permutation vector E (list or rank-1 array, length n) to a permutation matrix (n by n).
+
+The result is returned as a scipy.sparse.coo_matrix, where the entries at (E[k], k) are 1.
+'''
+    n = len( E )
+    j = numpy.arange( n )
+    return scipy.sparse.coo_matrix( ( numpy.ones(n), ( E, j ) ), shape = ( n, n ) )
+
+
+## Memory management
+
+# Used only internally by this module (the user sees only sparse and dense formats).
+def _cholmod_free_triplet( A ):
     '''Deallocate a CHOLMOD triplet format matrix.'''
     A_ptr = ffi.new("cholmod_triplet**")
     A_ptr[0] = A
     lib.cholmod_l_free_triplet( A_ptr, cc )
+
+def cholmod_free_sparse( A ):
+    '''Deallocate a CHOLMOD sparse matrix.'''
+    A_ptr = ffi.new("cholmod_sparse**")
+    A_ptr[0] = A
+    lib.cholmod_l_free_sparse( A_ptr, cc )
+
+def cholmod_free_dense( A ):
+    '''Deallocate a CHOLMOD dense matrix.'''
+    A_ptr = ffi.new("cholmod_dense**")
+    A_ptr[0] = A
+    lib.cholmod_l_free_dense( A_ptr, cc )
 
 
 ## Solvers
@@ -184,7 +217,7 @@ def qr( A, tolerance = None ):
     Unless you have a large number of systems to solve with the same A, qr_solve() is much faster.
     '''
 
-    chol_A = scipy2cholmod( A )
+    chol_A = scipy2cholmodsparse( A )
 
     chol_Q = ffi.new("cholmod_sparse**")
     chol_R = ffi.new("cholmod_sparse**")
@@ -205,8 +238,8 @@ def qr( A, tolerance = None ):
         cc
         )
 
-    scipy_Q = cholmod2scipy( chol_Q[0] )
-    scipy_R = cholmod2scipy( chol_R[0] )
+    scipy_Q = cholmodsparse2scipy( chol_Q[0] )
+    scipy_R = cholmodsparse2scipy( chol_R[0] )
 
     ## If chol_E is null, there was no permutation.
     if chol_E == ffi.NULL:
@@ -221,8 +254,8 @@ def qr( A, tolerance = None ):
         E = cffi_asarray.asarray( ffi, chol_E[0], A.shape[1] ).copy()
 
     ## Free cholmod stuff
-    lib.cholmod_l_free_sparse( chol_Q, cc )
-    lib.cholmod_l_free_sparse( chol_R, cc )
+    cholmod_free_sparse( chol_Q[0] )
+    cholmod_free_sparse( chol_R[0] )
     ## Apparently we don't need to do this. (I get a malloc error.)
     # lib.cholmod_l_free( A.shape[1], ffi.sizeof("SuiteSparse_long"), chol_E, cc )
 
@@ -244,8 +277,8 @@ def qr_solve( A, b, tolerance = None ):
         #define SPQR_NO_TOL ...            /* if -2 < tol < 0, then no tol is used */
     '''
 
-    chol_A = scipy2cholmod( A )
-    chol_b = numpy2cholmoddense( b )
+    chol_A = scipy2cholmodsparse( A )
+    chol_b = numpy2cholmoddense(  b )
 
     if tolerance is None: tolerance = lib.SPQR_DEFAULT_TOL
 
@@ -260,27 +293,15 @@ def qr_solve( A, b, tolerance = None ):
     if chol_x == ffi.NULL:
         return None  # failed
 
-    numpy_x = cholmoddense2numpy( chol_x[0] )
+    numpy_x = cholmoddense2numpy( chol_x )
 
     ## Free cholmod stuff
-    pchol_A = ffi.new("cholmod_sparse**")
-    pchol_A[0] = chol_A
-    pchol_b = ffi.new("cholmod_dense**")
-    pchol_b[0] = chol_b
-    pchol_x = ffi.new("cholmod_dense**")
-    pchol_x[0] = chol_x
-
-    lib.cholmod_l_free_sparse( pchol_A, cc )
-    lib.cholmod_l_free_dense(  pchol_b, cc )
-    lib.cholmod_l_free_dense(  pchol_x, cc )
+    cholmod_free_sparse( chol_A )
+    cholmod_free_dense(  chol_b )
+    cholmod_free_dense(  chol_x )
 
     return numpy_x
 
-def permutation_from_E( E ):
-    '''Convert permutation vector E (length n) to permutation matrix (n by n).'''
-    n = len( E )
-    j = numpy.arange( n )
-    return scipy.sparse.coo_matrix( ( numpy.ones(n), ( E, j ) ), shape = ( n, n ) )
 
 if __name__ == '__main__':
     # Q, R, E, rank = qr( scipy.sparse.identity(10) )
