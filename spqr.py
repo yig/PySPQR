@@ -145,9 +145,9 @@ def cholmoddense2numpy( chol_A ):
     '''Convert a CHOLMOD dense matrix to a NumPy array.'''
     Adata = ffi.cast( "double*", chol_A.x )
 
-    result = cffi_asarray.asarray( ffi, Adata, chol_A.nrow*chol_A.ncol )
+    result = cffi_asarray.asarray( ffi, Adata, chol_A.nrow*chol_A.ncol ).copy()
     result = result.reshape( (chol_A.nrow, chol_A.ncol), order='F' )
-    return numpy.squeeze(result)
+    return result
 
 def permutation_from_E( E ):
     '''Convert a permutation vector E (list or rank-1 array, length n) to a permutation matrix (n by n).
@@ -293,7 +293,8 @@ def qr_solve( A, b, tolerance = None ):
     if chol_x == ffi.NULL:
         return None  # failed
 
-    numpy_x = cholmoddense2numpy( chol_x )
+    ## Return x with the same shape as b.
+    numpy_x = cholmoddense2numpy( chol_x ).reshape( b.shape )
 
     ## Free cholmod stuff
     cholmod_free_sparse( chol_A )
@@ -349,14 +350,32 @@ def qr_solve_sparse( A, b, tolerance = None ):
 if __name__ == '__main__':
     # Q, R, E, rank = qr( scipy.sparse.identity(10) )
 
+    print( "Testing qr()" )
     M = scipy.sparse.rand( 10, 10, density = 0.1 )
     Q, R, E, rank = qr( M, tolerance = 0 )
     print( abs( Q*R - M*permutation_from_E(E) ).sum() )
 
+    print( "Testing qr_solve()" )
     b = numpy.random.random(10)  # one RHS, but could also have many (in shape (10,k))
     x = qr_solve( M, b, tolerance = 0 )
     print( x )
+    ## This won't be true in general because M is rank deficient.
+    # print( abs( M*x - b ).sum() )
+    print( b.shape )
+    print( x.shape )
+    B = numpy.random.random((10,5))  # many RHS
+    x = qr_solve( M, B, tolerance = 0 )
+    print( x )
+    ## This won't be true in general because M is rank deficient.
+    # print( abs( M*x - B ).sum() )
+    print( B.shape )
+    print( x.shape )
 
+    print( "Testing qr_solve_sparse()" )
     B = scipy.sparse.rand( 10, 5, density = 0.1 )  # many RHS, sparse
     x = qr_solve_sparse( M, B, tolerance = 0 )
     print( x )
+    ## This won't be true in general because M is rank deficient.
+    # print( abs( M*x - B ).sum() )
+    print( B.shape )
+    print( x.shape )
