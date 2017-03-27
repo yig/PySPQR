@@ -34,9 +34,12 @@ Helpful links:
 cc = ffi.new("cholmod_common*")
 lib.cholmod_l_start( cc )
 
-def deinit():
+## Set up cholmod deinit to run when Python exits
+def _deinit():
     '''Deinitialize the CHOLMOD library.'''
     lib.cholmod_l_finish( cc )
+import atexit
+atexit.register(_deinit)
 
 def scipy2cholmod( scipy_A ):
     '''Convert a SciPy sparse matrix to a CHOLMOD sparse matrix.
