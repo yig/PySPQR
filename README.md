@@ -3,8 +3,9 @@
 This module wraps the [SuiteSparseQR](http://faculty.cse.tamu.edu/davis/suitesparse.html)
 decomposition function for use with [SciPy](http://www.scipy.org).
 This is Matlab's sparse `[Q,R,E] = qr()`.
+For some reason, no one ever wrapped that function of SuiteSparseQR for Python.
 
-This fork of the project wraps also the SuiteSparseQR solvers for ``A x = b`` for the cases with sparse `A` and dense or sparse `b`.
+Also wrapped are the SuiteSparseQR solvers for ``A x = b`` for the cases with sparse `A` and dense or sparse `b`.
 This is especially useful for solving sparse overdetermined linear systems in the least-squares sense.
 Here `A` is of size m-by-n and `b` is m-by-k (storing `k` different right-hand side vectors, each considered separately).
 
