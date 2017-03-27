@@ -44,8 +44,10 @@ atexit.register(_deinit)
 def scipy2cholmod( scipy_A ):
     '''Convert a SciPy sparse matrix to a CHOLMOD sparse matrix.
 
-    The input is first internally converted to scipy.sparse.coo_matrix format.
-    '''
+The input is first internally converted to scipy.sparse.coo_matrix format.
+
+When no longer needed, the returned CHOLMOD sparse matrix must be deallocated using cholmod_free_sparse().
+'''
     scipy_A = scipy_A.tocoo()
 
     nnz = scipy_A.nnz
@@ -145,6 +147,9 @@ def cholmod_free_triplet( A ):
     A_ptr[0] = A
     lib.cholmod_l_free_triplet( A_ptr, cc )
 
+
+## Solvers
+
 def qr( A, tolerance = None ):
     '''
     Given a sparse matrix A,
@@ -168,15 +173,15 @@ def qr( A, tolerance = None ):
 
         Q, R, E, rank = spqr.qr( A )
         k = min(A.shape)
-        R = R.tocsr()[:k,:]
-        Q = Q.tocsc()[:,:k]
-        Qb = (Q.T).dot(b)  # use .dot() (not numpy.dot()) since Q is sparse
+        R = R.tocsr()[:k,:]  # cut away the block of zeros at the bottom
+        Q = Q.tocsc()[:,:k]  # cut away the corresponding part of Q
+        Qb = (Q.T).dot(b)    # use .dot() (not numpy.dot()) since Q is sparse
         result = scipy.sparse.linalg.spsolve(R, Qb)
         x = numpy.empty_like(result)
-        x[E] = result[:]  # apply inverse permutation
+        x[E] = result[:]     # apply inverse permutation
 
-    Be aware that this approach is slow, because qr() explicitly constructs Q;
-    if you have only one or a few systems to solve, qr_solve() is usually faster.
+    Be aware that this approach is slow, because qr() explicitly constructs Q.
+    Unless you have a large number of systems to solve with the same A, qr_solve() is much faster.
     '''
 
     chol_A = scipy2cholmod( A )
@@ -232,6 +237,8 @@ def qr_solve( A, b, tolerance = None ):
 
     Returns x on success, None on failure.
 
+    The performance-optimal format for A is scipy.sparse.coo_matrix.
+
     If optional `tolerance` parameter is negative, it has the following meanings:
         #define SPQR_DEFAULT_TOL ...       /* if tol <= -2, the default tol is used */
         #define SPQR_NO_TOL ...            /* if -2 < tol < 0, then no tol is used */
@@ -282,7 +289,6 @@ if __name__ == '__main__':
     Q, R, E, rank = qr( M, tolerance = 0 )
     print( abs( Q*R - M*permutation_from_E(E) ).sum() )
 
-    M2 = scipy.sparse.rand( 10, 10, density = 0.1 )
-    b  = numpy.random.random(10)
-    x  = qr_solve( M, b, tolerance = 0 )
+    b = numpy.random.random(10)  # one RHS, but could also have many (in shape (10,k))
+    x = qr_solve( M, b, tolerance = 0 )
     print( x )
