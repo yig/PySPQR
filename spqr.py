@@ -125,7 +125,7 @@ def numpy2cholmoddense( numpy_A ):
 
 Rank-1 arrays are converted to column vectors.
 
-When no longer needed, the returned CHOLMOD sparse matrix must be deallocated using cholmod_free_dense().
+When no longer needed, the returned CHOLMOD dense matrix must be deallocated using cholmod_free_dense().
 '''
     numpy_A = numpy.atleast_2d( numpy_A )
     if numpy_A.shape[0] == 1 and numpy_A.shape[1] > 1:  # prefer column vector
