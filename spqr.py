@@ -294,7 +294,9 @@ def qr_solve( A, b, tolerance = None ):
         return None  # failed
 
     ## Return x with the same shape as b.
-    numpy_x = cholmoddense2numpy( chol_x ).reshape( b.shape )
+    x_shape = list( b.shape )
+    x_shape[0] = A.shape[1]
+    numpy_x = cholmoddense2numpy( chol_x ).reshape( x_shape )
 
     ## Free cholmod stuff
     cholmod_free_sparse( chol_A )
@@ -351,7 +353,7 @@ if __name__ == '__main__':
     # Q, R, E, rank = qr( scipy.sparse.identity(10) )
 
     print( "Testing qr()" )
-    M = scipy.sparse.rand( 10, 10, density = 0.1 )
+    M = scipy.sparse.rand( 10, 8, density = 0.1 )
     Q, R, E, rank = qr( M, tolerance = 0 )
     print( abs( Q*R - M*permutation_from_E(E) ).sum() )
 
