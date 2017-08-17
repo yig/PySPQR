@@ -61,12 +61,33 @@ x.row = E[ x.row ]
 
 # Installation
 
-Copy the three `.py` files next to your source code,
+## From GitHub
+
+As user:
+
+```bash
+git clone https://github.com/yig/PySPQR.git
+cd PySPQR
+python setup.py install --user
+```
+
+As admin, change the last command to
+
+```bash
+sudo python setup.py install
+```
+
+## Old method
+
+Copy the `.py` files next to your source code,
 or leave them in this directory and call it as a module.
 
-Tested on Python 2.7 and 3.5.
 
-Tested on Mac OS X and Ubuntu Linux.
+# Tested on
+
+ - Python 2.7, 3.4 and 3.5.
+ - Mac OS X, Ubuntu Linux and Linux Mint.
+
 
 # Dependencies
 
