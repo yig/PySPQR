@@ -4,11 +4,13 @@ License: Public Domain [CC0](http://creativecommons.org/publicdomain/zero/1.0/)
 Description: Wrapper for SuiteSparse qr() function. Matlab has it, Python should have it, too.
 '''
 
+from __future__ import print_function, division, absolute_import
+
 from cffi import FFI
 
 ffibuilder = FFI()
 
-ffibuilder.set_source( "_spqr",
+ffibuilder.set_source( "sparseqr._spqr",
     """#include <SuiteSparseQR_C.h>
 """,
     ## You may need to modify the following line,

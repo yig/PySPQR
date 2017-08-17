@@ -5,7 +5,7 @@ Description: An `asarray` function that wraps a cffi pointer in a numpy.array.
 URL: https://gist.github.com/yig/77667e676163bbfc6c44af02657618a6
 '''
 
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 
 import numpy
 

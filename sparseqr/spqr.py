@@ -4,24 +4,41 @@ License: Public Domain [CC0](http://creativecommons.org/publicdomain/zero/1.0/)
 Description: Wrapper for SuiteSparse qr() function. Matlab has it, Python should have it, too.
 '''
 
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 
+# The compilation here works only if the files have been copied locally into the project,
+# as the compile requires write access into the directory the files reside in.
+#
+# In an installed copy of PySPQR, the compile step has already been run by setup.py at packaging time.
+#
 try:
-    from _spqr import ffi, lib
+    from ._spqr import ffi, lib
 except ImportError:
     print( "=== Wrapper module not compiled; compiling..." )
-    import spqr_gen
-    spqr_gen.main()
+    from .spqr_gen import main
+    main()
     print( "=== ...compiled." )
 
-    from _spqr import ffi, lib
+    from ._spqr import ffi, lib
+
+# Packaging note:
+#
+# http://cffi.readthedocs.io/en/latest/cdef.html says that:
+#
+# Note that some bundler tools that try to find all modules used by a project, like PyInstaller,
+# will miss _cffi_backend in the out-of-line mode because your program contains no explicit
+# import cffi or import _cffi_backend. You need to add _cffi_backend explicitly (as a “hidden import”
+# in PyInstaller, but it can also be done more generally by adding the line import _cffi_backend in your main program).
+#
+import _cffi_backend
 
 import scipy.sparse
 import numpy
-import cffi_asarray
+
+from .cffi_asarray import asarray
 
 '''
-Helpful links:
+Helpful links for developers:
     The primary docs:
     http://cffi.readthedocs.io/en/latest/overview.html
     http://cffi.readthedocs.io/en/latest/using.html
@@ -106,9 +123,9 @@ def cholmodsparse2scipy( chol_A ):
     ## UPDATE: I can do this without going through list() or making two extra copies.
     ## NOTE: Create a copy() of the array data, because the coo_matrix() constructor
     ##       doesn't and the cholmod memory fill get freed.
-    i = cffi_asarray.asarray( ffi, Ai, nnz ).copy()
-    j = cffi_asarray.asarray( ffi, Aj, nnz ).copy()
-    data = cffi_asarray.asarray( ffi, Adata, nnz ).copy()
+    i = asarray( ffi, Ai, nnz ).copy()
+    j = asarray( ffi, Aj, nnz ).copy()
+    data = asarray( ffi, Adata, nnz ).copy()
 
     scipy_A = scipy.sparse.coo_matrix(
         ( data, ( i, j ) ),
@@ -145,7 +162,7 @@ def cholmoddense2numpy( chol_A ):
     '''Convert a CHOLMOD dense matrix to a NumPy array.'''
     Adata = ffi.cast( "double*", chol_A.x )
 
-    result = cffi_asarray.asarray( ffi, Adata, chol_A.nrow*chol_A.ncol ).copy()
+    result = asarray( ffi, Adata, chol_A.nrow*chol_A.ncol ).copy()
     result = result.reshape( (chol_A.nrow, chol_A.ncol), order='F' )
     return result
 
@@ -251,7 +268,7 @@ def qr( A, tolerance = None ):
         # E = numpy.zeros( A.shape[1], dtype = int )
         # E[0:A.shape[1]] = list( chol_E[0][0:A.shape[1]] )
         ## UPDATE: I can do this without going through list() or making two extra copies.
-        E = cffi_asarray.asarray( ffi, chol_E[0], A.shape[1] ).copy()
+        E = asarray( ffi, chol_E[0], A.shape[1] ).copy()
 
     ## Free cholmod stuff
     cholmod_free_sparse( chol_Q[0] )
