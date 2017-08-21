@@ -57,14 +57,34 @@ Supports Python 2.7 and 3.4.
 # Set up data files for packaging.
 #
 # Directories (relative to the top-level directory where setup.py resides) in which to look for data files.
-datadirs  = ("test",)
+#
+# data_files, when used for this purpose, doesn't play nice with Mac OS (setuptools prefix set to /usr/local); we use MANIFEST.in instead.
+#
+# The MANIFEST.in solution makes README.md and test/test.py to be included in the sdist, but not the bdist (as they are not inside any package).
+# From the user's perspective, this is probably fine.
+#
+# For some documentation, see
+#   http://blog.cykerway.com/posts/2016/10/14/install-package-data-with-setuptools.html
+#   https://stackoverflow.com/questions/24727709/i-dont-understand-python-manifest-in
+#
+# Note especially the comment
+#   https://stackoverflow.com/questions/24727709/i-dont-understand-python-manifest-in#comment46482024_24727824
+# which states that
+#    To head off the inevitable package_data and data_files recommendations, which are out of scope, I'll continue.
+#    package_data lists file that get installed with your package into dist-packages/yourpackage which would have been
+#    skipped because the don't have a *.py name. data_files lists files that get installed outside of your package.
+#    Each entry specifies a target path that is prefixed with sys.prefix if it is relative or created directly
+#    (permissions permitting) if it begins with a /. -Bruno Bronosky Mar 18 '15 at 16:55 
+#
+datadirs  = []
 
 # File extensions to be considered as data files. (Literal, no wildcards.)
 dataexts  = (".py", ".ipynb",  ".sh",  ".lyx", ".tex", ".txt", ".pdf")
 
 # Standard documentation to detect (and package if it exists).
 #
-standard_docs     = ["README", "LICENSE", "TODO", "CHANGELOG", "AUTHORS"]  # just the basename without file extension
+#standard_docs     = ["README", "LICENSE", "TODO", "CHANGELOG", "AUTHORS"]  # just the basename without file extension
+standard_docs     = []  # same here, don't use data_files
 standard_doc_exts = [".md", ".rst", ".txt", ""]  # commonly .md for GitHub projects, but other projects may use .rst or .txt (or even blank).
 
 
@@ -186,9 +206,12 @@ setup(
     #
     packages = ["sparseqr"],
 
-    zip_safe = False,  # uses CFFI, maybe not zip safe
+    zip_safe = False  # includes a binary extension, not zip safe
+
+    # This flag is usually used with MANIFEST.in, but we don't need it (our README and test.py do not reside in any package and thus would not be installed in a bdist anyway; they are only to be included in the sdist)
+#    include_package_data = True
 
     # Custom data files not inside a Python package
-    data_files = datafiles
+#    data_files = datafiles
 )
 
