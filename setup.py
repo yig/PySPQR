@@ -15,7 +15,7 @@ setup(
 
 This is Matlab's sparse `[Q,R,E] = qr()`.
 
-The solvers work also for overdetermined linear systems, making them useful for solving linear least-squares problems.
+The solver works also for overdetermined linear systems, making it useful for solving linear least-squares problems.
 
 Supports Python 2.7 and 3.4.
 """,

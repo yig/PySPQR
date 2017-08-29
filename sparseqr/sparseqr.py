@@ -213,7 +213,7 @@ def qr( A, tolerance = None ):
 
     The performance-optimal format for A is scipy.sparse.coo_matrix.
 
-    For solving systems of the form A x = b, see qr_solve().
+    For solving systems of the form A x = b, see solve().
 
     qr() can also be used to solve systems, as follows:
 
@@ -242,8 +242,8 @@ def qr( A, tolerance = None ):
         x = scipy.sparse.vstack( ( result.tocoo(), scipy.sparse.coo_matrix( ( A.shape[1] - rank, B.shape[1] ), dtype = result.dtype ) ) )
         x.row = E[ x.row ]
 
-    Be aware that this approach is slow, because qr() explicitly constructs Q.
-    Unless you have a large number of systems to solve with the same A, qr_solve() is much faster.
+    Be aware that this approach is slow and takes a lot of memory, because qr() explicitly constructs Q.
+    Unless you have a large number of systems to solve with the same A, solve() is much faster.
     '''
 
     chol_A = scipy2cholmodsparse( A )
@@ -290,14 +290,38 @@ def qr( A, tolerance = None ):
 
     return scipy_Q, scipy_R, E, rank
 
-def qr_solve( A, b, tolerance = None ):
+
+def solve( A, b, tolerance = None ):
+    '''
+    Given a sparse m-by-n matrix A, and dense or sparse m-by-k matrix (storing k RHS vectors) b,
+    solve A x = b in the least-squares sense.
+
+    This is much faster than using qr() to solve the system, since Q is not explicitly constructed.
+
+    Returns x on success, None on failure.
+
+    The format of the returned x (on success) is either dense or sparse, corresponding to
+    the format of the b that was supplied.
+
+    The performance-optimal format for A is scipy.sparse.coo_matrix.
+
+    If optional `tolerance` parameter is negative, it has the following meanings:
+        #define SPQR_DEFAULT_TOL ...       /* if tol <= -2, the default tol is used */
+        #define SPQR_NO_TOL ...            /* if -2 < tol < 0, then no tol is used */
+    '''
+    if isinstance( b, scipy.sparse.spmatrix ):
+        return _solve_with_sparse_rhs( A, b, tolerance )
+    else:
+        return _solve_with_dense_rhs(  A, b, tolerance )
+
+def _solve_with_dense_rhs( A, b, tolerance = None ):
     '''
     Given a sparse m-by-n matrix A, and dense m-by-k matrix (storing k RHS vectors) b,
     solve A x = b in the least-squares sense.
 
     This is much faster than using qr() to solve the system, since Q is not explicitly constructed.
 
-    Returns x on success, None on failure.
+    Returns x (dense) on success, None on failure.
 
     The performance-optimal format for A is scipy.sparse.coo_matrix.
 
@@ -334,14 +358,14 @@ def qr_solve( A, b, tolerance = None ):
 
     return numpy_x
 
-def qr_solve_sparse( A, b, tolerance = None ):
+def _solve_with_sparse_rhs( A, b, tolerance = None ):
     '''
     Given a sparse m-by-n matrix A, and sparse m-by-k matrix (storing k RHS vectors) b,
     solve A x = b in the least-squares sense.
 
     This is much faster than using qr() to solve the system, since Q is not explicitly constructed.
 
-    Returns x on success, None on failure.
+    Returns x (sparse) on success, None on failure.
 
     The performance-optimal format for A and b is scipy.sparse.coo_matrix.
 
@@ -386,25 +410,25 @@ if __name__ == '__main__':
     Q, R, E, rank = qr( M, tolerance = 0 )
     print( abs( Q*R - M*permutation_from_E(E) ).sum() )
 
-    print( "Testing qr_solve()" )
+    print( "Testing solve(), using dense RHS" )
     b = numpy.random.random(10)  # one RHS, but could also have many (in shape (10,k))
-    x = qr_solve( M, b, tolerance = 0 )
+    x = solve( M, b, tolerance = 0 )
     print( x )
     ## This won't be true in general because M is rank deficient.
     # print( abs( M*x - b ).sum() )
     print( b.shape )
     print( x.shape )
     B = numpy.random.random((10,5))  # many RHS
-    x = qr_solve( M, B, tolerance = 0 )
+    x = solve( M, B, tolerance = 0 )
     print( x )
     ## This won't be true in general because M is rank deficient.
     # print( abs( M*x - B ).sum() )
     print( B.shape )
     print( x.shape )
 
-    print( "Testing qr_solve_sparse()" )
+    print( "Testing solve(), using sparse RHS" )
     B = scipy.sparse.rand( 10, 5, density = 0.1 )  # many RHS, sparse
-    x = qr_solve_sparse( M, B, tolerance = 0 )
+    x = solve( M, B, tolerance = 0 )
     print( x )
     ## This won't be true in general because M is rank deficient.
     # print( abs( M*x - B ).sum() )
