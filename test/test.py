@@ -16,7 +16,7 @@ print( abs( Q*R - M*sparseqr.permutation_from_E(E) ).sum() )  # should be approx
 # Solve many linear systems "M x = b for b in columns(B)"
 #
 B = scipy.sparse.rand( 10, 5, density = 0.1 )  # many RHS, sparse (could also have just one RHS with shape (10,))
-x = sparseqr.solve_sparse( M, B, tolerance = 0 )
+x = sparseqr.solve( M, B, tolerance = 0 )
 
 # Solve an overdetermined linear system  A x = b  in the least-squares sense
 #
