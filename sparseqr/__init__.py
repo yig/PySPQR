@@ -19,7 +19,7 @@ from __future__ import absolute_import
 __version__ = '1.0.0'
 
 # add any imports here, if you wish to bring things into the library's top-level namespace when the library is imported.
-from .spqr import qr, permutation_from_E
-from .spqr import qr_solve as solve
-from .spqr import qr_solve_sparse as solve_sparse
+from .sparseqr import qr, permutation_from_E
+from .sparseqr import qr_solve as solve
+from .sparseqr import qr_solve_sparse as solve_sparse
 

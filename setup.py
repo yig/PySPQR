@@ -51,7 +51,7 @@ Supports Python 2.7 and 3.4.
     #    http://setuptools.readthedocs.io/en/latest/setuptools.html
     #
     setup_requires = ["cffi>=1.0.0"],
-    cffi_modules = ["sparseqr/spqr_gen.py:ffibuilder"],
+    cffi_modules = ["sparseqr/sparseqr_gen.py:ffibuilder"],
     install_requires = ["numpy", "scipy", "cffi>=1.0.0"],
     provides = ["sparseqr"],
 

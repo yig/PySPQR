@@ -10,7 +10,7 @@ from cffi import FFI
 
 ffibuilder = FFI()
 
-ffibuilder.set_source( "sparseqr._spqr",
+ffibuilder.set_source( "sparseqr._sparseqr",
     """#include <SuiteSparseQR_C.h>
 """,
     ## You may need to modify the following line,

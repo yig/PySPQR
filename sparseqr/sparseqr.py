@@ -12,14 +12,14 @@ from __future__ import print_function, division, absolute_import
 # In an installed copy of PySPQR, the compile step has already been run by setup.py at packaging time.
 #
 try:
-    from ._spqr import ffi, lib
+    from ._sparseqr import ffi, lib
 except ImportError:
     print( "=== Wrapper module not compiled; compiling..." )
-    from .spqr_gen import main
+    from .sparseqr_gen import main
     main()
     print( "=== ...compiled." )
 
-    from ._spqr import ffi, lib
+    from ._sparseqr import ffi, lib
 
 # Packaging note:
 #
