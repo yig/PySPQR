@@ -221,14 +221,26 @@ def qr( A, tolerance = None ):
         import numpy
         import scipy
 
-        Q, R, E, rank = spqr.qr( A )
-        k = min(A.shape)
-        R = R.tocsr()[:k,:]  # cut away the block of zeros at the bottom
-        Q = Q.tocsc()[:,:k]  # cut away the corresponding part of Q
-        Qb = (Q.T).dot(b)    # use .dot() (not numpy.dot()) since Q is sparse
-        result = scipy.sparse.linalg.spsolve(R, Qb)
-        x = numpy.empty_like(result)
-        x[E] = result[:]     # apply inverse permutation
+        Q, R, E, rank = sparseqr.qr( A )
+        r = rank  # r could be min(A.shape) if A is full-rank
+
+        # The system is only solvable if the lower part of Q.T @ B is all zero:
+        print( "System is solvable if this is zero:", abs( (( Q.tocsc()[:,r:] ).T ).dot( B ) ).sum() )
+
+        # Use CSC format for fast indexing of columns.
+        R  = R.tocsc()[:r,:r]
+        Q  = Q.tocsc()[:,:r]
+        QB = (Q.T).dot(B).tocsc()  # for best performance, spsolve() wants the RHS to be in CSC format.
+        result = scipy.sparse.linalg.spsolve(R, QB)
+
+        # Recover a solution (as a dense array):
+        x = numpy.zeros( ( A.shape[1], B.shape[1] ), dtype = result.dtype )
+        x[:r] = result.todense()
+        x[E] = x.copy()
+
+        # Recover a solution (as a sparse matrix):
+        x = scipy.sparse.vstack( ( result.tocoo(), scipy.sparse.coo_matrix( ( A.shape[1] - rank, B.shape[1] ), dtype = result.dtype ) ) )
+        x.row = E[ x.row ]
 
     Be aware that this approach is slow, because qr() explicitly constructs Q.
     Unless you have a large number of systems to solve with the same A, qr_solve() is much faster.
