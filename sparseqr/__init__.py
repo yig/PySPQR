@@ -16,7 +16,6 @@ See the docstrings of the individual functions for details.
 
 from __future__ import absolute_import
 
-# This is extracted automatically by the top-level setup.py.
 __version__ = '1.0.0'
 
 # add any imports here, if you wish to bring things into the library's top-level namespace when the library is imported.
