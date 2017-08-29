@@ -8,7 +8,6 @@ setup(
     name = "sparseqr",
     version = "1.0.0",
     author = "Yotam Gingold and Juha Jeronen",
-#    author_email = "juha.jeronen@tut.fi",
     url = "https://github.com/yig/PySPQR",
 
     description = "Python wrapper for SuiteSparseQR",
