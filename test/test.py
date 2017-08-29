@@ -37,9 +37,11 @@ r = rank  # r could be min(M.shape) if M is full-rank
 
 # The system is only solvable if the lower part of Q.T @ B is all zero:
 print( "System is solvable if this is zero:", abs( (( Q.tocsc()[:,r:] ).T ).dot( B ) ).sum() )
+
+# Use CSC format for fast indexing of columns.
 R = R.tocsc()[:r,:r]
 Q = Q.tocsc()[:,:r]
-QB = (Q.T).dot(B).tocsc()
+QB = (Q.T).dot(B).tocsc()  # for best performance, spsolve() wants the RHS to be in CSC format.
 result = scipy.sparse.linalg.spsolve(R, QB)
 
 # Recover a solution (as a dense array):
