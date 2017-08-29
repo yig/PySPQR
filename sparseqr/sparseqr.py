@@ -166,7 +166,7 @@ def cholmoddense2numpy( chol_A ):
     result = result.reshape( (chol_A.nrow, chol_A.ncol), order='F' )
     return result
 
-def permutation_from_E( E ):
+def permutation_vector_to_matrix( E ):
     '''Convert a permutation vector E (list or rank-1 array, length n) to a permutation matrix (n by n).
 
 The result is returned as a scipy.sparse.coo_matrix, where the entries at (E[k], k) are 1.
@@ -204,7 +204,7 @@ def qr( A, tolerance = None ):
     '''
     Given a sparse matrix A,
     returns Q, R, E, rank such that:
-        Q*R = A*permutation_from_E(E)
+        Q*R = A*permutation_vector_to_matrix(E)
     rank is the estimated rank of A.
 
     If optional `tolerance` parameter is negative, it has the following meanings:
@@ -408,7 +408,7 @@ if __name__ == '__main__':
     print( "Testing qr()" )
     M = scipy.sparse.rand( 10, 8, density = 0.1 )
     Q, R, E, rank = qr( M, tolerance = 0 )
-    print( abs( Q*R - M*permutation_from_E(E) ).sum() )
+    print( abs( Q*R - M*permutation_vector_to_matrix(E) ).sum() )
 
     print( "Testing solve(), using dense RHS" )
     b = numpy.random.random(10)  # one RHS, but could also have many (in shape (10,k))
