@@ -65,7 +65,13 @@ x.row = E[ x.row ]
 
 # Installation
 
-## From GitHub
+## Via `pip`
+
+```bash
+pip install git+https://github.com/yig/PySPQR.git
+```
+
+## Manually from GitHub
 
 As user:
 
@@ -81,10 +87,10 @@ As admin, change the last command to
 sudo python setup.py install
 ```
 
-## Old method
+## Directly
 
-Copy the `.py` files next to your source code,
-or leave them in this directory and call it as a module.
+Copy the three `sparseqr/*.py` files next to your source code,
+or leave them in their directory and call it as a module.
 
 
 # Tested on
