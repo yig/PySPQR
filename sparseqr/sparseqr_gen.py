@@ -1,7 +1,7 @@
 '''
 Author: Yotam Gingold <yotam (strudel) yotamgingold.com>
 License: Public Domain [CC0](http://creativecommons.org/publicdomain/zero/1.0/)
-Description: Wrapper for SuiteSparse qr() function. Matlab has it, Python should have it, too.
+Description: Wrapper for SuiteSparse qr() and solve() functions. Matlab and Julia have it, Python should have it, too.
 '''
 
 from __future__ import print_function, division, absolute_import

@@ -1,7 +1,7 @@
 '''
 Author: Yotam Gingold <yotam (strudel) yotamgingold.com>
 License: Public Domain [CC0](http://creativecommons.org/publicdomain/zero/1.0/)
-Description: Wrapper for SuiteSparse qr() function. Matlab has it, Python should have it, too.
+Description: Wrapper for SuiteSparse qr() and solve() functions. Matlab and Julia have it, Python should have it, too.
 '''
 
 from __future__ import print_function, division, absolute_import
@@ -27,7 +27,7 @@ except ImportError:
 #
 # Note that some bundler tools that try to find all modules used by a project, like PyInstaller,
 # will miss _cffi_backend in the out-of-line mode because your program contains no explicit
-# import cffi or import _cffi_backend. You need to add _cffi_backend explicitly (as a “hidden import”
+# import cffi or import _cffi_backend. You need to add _cffi_backend explicitly (as a "hidden import"
 # in PyInstaller, but it can also be done more generally by adding the line import _cffi_backend in your main program).
 #
 import _cffi_backend
