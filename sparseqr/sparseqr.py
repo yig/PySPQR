@@ -4,24 +4,41 @@ License: Public Domain [CC0](http://creativecommons.org/publicdomain/zero/1.0/)
 Description: Wrapper for SuiteSparse qr() function. Matlab has it, Python should have it, too.
 '''
 
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 
+# The compilation here works only if the files have been copied locally into the project,
+# as the compile requires write access into the directory the files reside in.
+#
+# In an installed copy of PySPQR, the compile step has already been run by setup.py at packaging time.
+#
 try:
-    from _spqr import ffi, lib
+    from ._sparseqr import ffi, lib
 except ImportError:
     print( "=== Wrapper module not compiled; compiling..." )
-    import spqr_gen
-    spqr_gen.main()
+    from .sparseqr_gen import main
+    main()
     print( "=== ...compiled." )
 
-    from _spqr import ffi, lib
+    from ._sparseqr import ffi, lib
+
+# Packaging note:
+#
+# http://cffi.readthedocs.io/en/latest/cdef.html says that:
+#
+# Note that some bundler tools that try to find all modules used by a project, like PyInstaller,
+# will miss _cffi_backend in the out-of-line mode because your program contains no explicit
+# import cffi or import _cffi_backend. You need to add _cffi_backend explicitly (as a “hidden import”
+# in PyInstaller, but it can also be done more generally by adding the line import _cffi_backend in your main program).
+#
+import _cffi_backend
 
 import scipy.sparse
 import numpy
-import cffi_asarray
+
+from .cffi_asarray import asarray
 
 '''
-Helpful links:
+Helpful links for developers:
     The primary docs:
     http://cffi.readthedocs.io/en/latest/overview.html
     http://cffi.readthedocs.io/en/latest/using.html
@@ -106,9 +123,9 @@ def cholmodsparse2scipy( chol_A ):
     ## UPDATE: I can do this without going through list() or making two extra copies.
     ## NOTE: Create a copy() of the array data, because the coo_matrix() constructor
     ##       doesn't and the cholmod memory fill get freed.
-    i = cffi_asarray.asarray( ffi, Ai, nnz ).copy()
-    j = cffi_asarray.asarray( ffi, Aj, nnz ).copy()
-    data = cffi_asarray.asarray( ffi, Adata, nnz ).copy()
+    i = asarray( ffi, Ai, nnz ).copy()
+    j = asarray( ffi, Aj, nnz ).copy()
+    data = asarray( ffi, Adata, nnz ).copy()
 
     scipy_A = scipy.sparse.coo_matrix(
         ( data, ( i, j ) ),
@@ -145,11 +162,11 @@ def cholmoddense2numpy( chol_A ):
     '''Convert a CHOLMOD dense matrix to a NumPy array.'''
     Adata = ffi.cast( "double*", chol_A.x )
 
-    result = cffi_asarray.asarray( ffi, Adata, chol_A.nrow*chol_A.ncol ).copy()
+    result = asarray( ffi, Adata, chol_A.nrow*chol_A.ncol ).copy()
     result = result.reshape( (chol_A.nrow, chol_A.ncol), order='F' )
     return result
 
-def permutation_from_E( E ):
+def permutation_vector_to_matrix( E ):
     '''Convert a permutation vector E (list or rank-1 array, length n) to a permutation matrix (n by n).
 
 The result is returned as a scipy.sparse.coo_matrix, where the entries at (E[k], k) are 1.
@@ -187,7 +204,7 @@ def qr( A, tolerance = None ):
     '''
     Given a sparse matrix A,
     returns Q, R, E, rank such that:
-        Q*R = A*permutation_from_E(E)
+        Q*R = A*permutation_vector_to_matrix(E)
     rank is the estimated rank of A.
 
     If optional `tolerance` parameter is negative, it has the following meanings:
@@ -196,7 +213,7 @@ def qr( A, tolerance = None ):
 
     The performance-optimal format for A is scipy.sparse.coo_matrix.
 
-    For solving systems of the form A x = b, see qr_solve().
+    For solving systems of the form A x = b, see solve().
 
     qr() can also be used to solve systems, as follows:
 
@@ -204,17 +221,29 @@ def qr( A, tolerance = None ):
         import numpy
         import scipy
 
-        Q, R, E, rank = spqr.qr( A )
-        k = min(A.shape)
-        R = R.tocsr()[:k,:]  # cut away the block of zeros at the bottom
-        Q = Q.tocsc()[:,:k]  # cut away the corresponding part of Q
-        Qb = (Q.T).dot(b)    # use .dot() (not numpy.dot()) since Q is sparse
-        result = scipy.sparse.linalg.spsolve(R, Qb)
-        x = numpy.empty_like(result)
-        x[E] = result[:]     # apply inverse permutation
+        Q, R, E, rank = sparseqr.qr( A )
+        r = rank  # r could be min(A.shape) if A is full-rank
 
-    Be aware that this approach is slow, because qr() explicitly constructs Q.
-    Unless you have a large number of systems to solve with the same A, qr_solve() is much faster.
+        # The system is only solvable if the lower part of Q.T @ B is all zero:
+        print( "System is solvable if this is zero:", abs( (( Q.tocsc()[:,r:] ).T ).dot( B ) ).sum() )
+
+        # Use CSC format for fast indexing of columns.
+        R  = R.tocsc()[:r,:r]
+        Q  = Q.tocsc()[:,:r]
+        QB = (Q.T).dot(B).tocsc()  # for best performance, spsolve() wants the RHS to be in CSC format.
+        result = scipy.sparse.linalg.spsolve(R, QB)
+
+        # Recover a solution (as a dense array):
+        x = numpy.zeros( ( A.shape[1], B.shape[1] ), dtype = result.dtype )
+        x[:r] = result.todense()
+        x[E] = x.copy()
+
+        # Recover a solution (as a sparse matrix):
+        x = scipy.sparse.vstack( ( result.tocoo(), scipy.sparse.coo_matrix( ( A.shape[1] - rank, B.shape[1] ), dtype = result.dtype ) ) )
+        x.row = E[ x.row ]
+
+    Be aware that this approach is slow and takes a lot of memory, because qr() explicitly constructs Q.
+    Unless you have a large number of systems to solve with the same A, solve() is much faster.
     '''
 
     chol_A = scipy2cholmodsparse( A )
@@ -251,7 +280,7 @@ def qr( A, tolerance = None ):
         # E = numpy.zeros( A.shape[1], dtype = int )
         # E[0:A.shape[1]] = list( chol_E[0][0:A.shape[1]] )
         ## UPDATE: I can do this without going through list() or making two extra copies.
-        E = cffi_asarray.asarray( ffi, chol_E[0], A.shape[1] ).copy()
+        E = asarray( ffi, chol_E[0], A.shape[1] ).copy()
 
     ## Free cholmod stuff
     cholmod_free_sparse( chol_Q[0] )
@@ -261,14 +290,38 @@ def qr( A, tolerance = None ):
 
     return scipy_Q, scipy_R, E, rank
 
-def qr_solve( A, b, tolerance = None ):
+
+def solve( A, b, tolerance = None ):
+    '''
+    Given a sparse m-by-n matrix A, and dense or sparse m-by-k matrix (storing k RHS vectors) b,
+    solve A x = b in the least-squares sense.
+
+    This is much faster than using qr() to solve the system, since Q is not explicitly constructed.
+
+    Returns x on success, None on failure.
+
+    The format of the returned x (on success) is either dense or sparse, corresponding to
+    the format of the b that was supplied.
+
+    The performance-optimal format for A is scipy.sparse.coo_matrix.
+
+    If optional `tolerance` parameter is negative, it has the following meanings:
+        #define SPQR_DEFAULT_TOL ...       /* if tol <= -2, the default tol is used */
+        #define SPQR_NO_TOL ...            /* if -2 < tol < 0, then no tol is used */
+    '''
+    if isinstance( b, scipy.sparse.spmatrix ):
+        return _solve_with_sparse_rhs( A, b, tolerance )
+    else:
+        return _solve_with_dense_rhs(  A, b, tolerance )
+
+def _solve_with_dense_rhs( A, b, tolerance = None ):
     '''
     Given a sparse m-by-n matrix A, and dense m-by-k matrix (storing k RHS vectors) b,
     solve A x = b in the least-squares sense.
 
     This is much faster than using qr() to solve the system, since Q is not explicitly constructed.
 
-    Returns x on success, None on failure.
+    Returns x (dense) on success, None on failure.
 
     The performance-optimal format for A is scipy.sparse.coo_matrix.
 
@@ -305,14 +358,14 @@ def qr_solve( A, b, tolerance = None ):
 
     return numpy_x
 
-def qr_solve_sparse( A, b, tolerance = None ):
+def _solve_with_sparse_rhs( A, b, tolerance = None ):
     '''
     Given a sparse m-by-n matrix A, and sparse m-by-k matrix (storing k RHS vectors) b,
     solve A x = b in the least-squares sense.
 
     This is much faster than using qr() to solve the system, since Q is not explicitly constructed.
 
-    Returns x on success, None on failure.
+    Returns x (sparse) on success, None on failure.
 
     The performance-optimal format for A and b is scipy.sparse.coo_matrix.
 
@@ -355,27 +408,27 @@ if __name__ == '__main__':
     print( "Testing qr()" )
     M = scipy.sparse.rand( 10, 8, density = 0.1 )
     Q, R, E, rank = qr( M, tolerance = 0 )
-    print( abs( Q*R - M*permutation_from_E(E) ).sum() )
+    print( abs( Q*R - M*permutation_vector_to_matrix(E) ).sum() )
 
-    print( "Testing qr_solve()" )
+    print( "Testing solve(), using dense RHS" )
     b = numpy.random.random(10)  # one RHS, but could also have many (in shape (10,k))
-    x = qr_solve( M, b, tolerance = 0 )
+    x = solve( M, b, tolerance = 0 )
     print( x )
     ## This won't be true in general because M is rank deficient.
     # print( abs( M*x - b ).sum() )
     print( b.shape )
     print( x.shape )
     B = numpy.random.random((10,5))  # many RHS
-    x = qr_solve( M, B, tolerance = 0 )
+    x = solve( M, B, tolerance = 0 )
     print( x )
     ## This won't be true in general because M is rank deficient.
     # print( abs( M*x - B ).sum() )
     print( B.shape )
     print( x.shape )
 
-    print( "Testing qr_solve_sparse()" )
+    print( "Testing solve(), using sparse RHS" )
     B = scipy.sparse.rand( 10, 5, density = 0.1 )  # many RHS, sparse
-    x = qr_solve_sparse( M, B, tolerance = 0 )
+    x = solve( M, B, tolerance = 0 )
     print( x )
     ## This won't be true in general because M is rank deficient.
     # print( abs( M*x - B ).sum() )

@@ -1,17 +1,8 @@
-# Python wrapper for SuiteSparseQR
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 
-This module wraps the [SuiteSparseQR](http://faculty.cse.tamu.edu/davis/suitesparse.html)
-decomposition function for use with [SciPy](http://www.scipy.org).
-This is Matlab's sparse `[Q,R,E] = qr()`.
-For some reason, no one ever wrapped that function of SuiteSparseQR for Python.
+from __future__ import division, print_function, absolute_import
 
-Also wrapped are the SuiteSparseQR solvers for ``A x = b`` for the cases with sparse `A` and dense or sparse `b`.
-This is especially useful for solving sparse overdetermined linear systems in the least-squares sense.
-Here `A` is of size m-by-n and `b` is m-by-k (storing `k` different right-hand side vectors, each considered separately).
-
-# Usage
-
-```python
 import numpy
 import scipy.sparse.linalg
 import sparseqr
@@ -61,44 +52,4 @@ x[E] = x.copy()
 # Recover a solution (as a sparse matrix):
 x = scipy.sparse.vstack( ( result.tocoo(), scipy.sparse.coo_matrix( ( M.shape[1] - rank, B.shape[1] ), dtype = result.dtype ) ) )
 x.row = E[ x.row ]
-```
 
-# Installation
-
-## From GitHub
-
-As user:
-
-```bash
-git clone https://github.com/yig/PySPQR.git
-cd PySPQR
-python setup.py install --user
-```
-
-As admin, change the last command to
-
-```bash
-sudo python setup.py install
-```
-
-## Old method
-
-Copy the `.py` files next to your source code,
-or leave them in this directory and call it as a module.
-
-
-# Tested on
-
- - Python 2.7, 3.4 and 3.5.
- - Mac OS X, Ubuntu Linux and Linux Mint.
-
-
-# Dependencies
-
-* [SciPy/NumPy](http://www.scipy.org)
-* [SuiteSparseQR](http://faculty.cse.tamu.edu/davis/suitesparse.html) (`brew install suitesparse`)
-* [cffi](http://cffi.readthedocs.io/) (`pip install cffi`)
-
-# License
-
-Public Domain [CC0](http://creativecommons.org/publicdomain/zero/1.0/)
