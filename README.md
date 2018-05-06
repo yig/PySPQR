@@ -48,10 +48,10 @@ r = rank  # r could be min(M.shape) if M is full-rank
 print( "System is solvable if this is zero:", abs( (( Q.tocsc()[:,r:] ).T ).dot( B ) ).sum() )
 
 # Use CSC format for fast indexing of columns.
-R = R.tocsc()[:r,:r]
-Q = Q.tocsc()[:,:r]
-QB = (Q.T).dot(B).tocsc()  # for best performance, spsolve() wants the RHS to be in CSC format.
-result = scipy.sparse.linalg.spsolve(R, QB)
+R = R.tocsr()[:r,:r]
+Q = Q.tocsr()[:,:r]
+QB = (Q.T).dot(B).tocsr()  # for best performance, spsolve_triangular() wants the RHS to be in CSR format.
+result = scipy.sparse.linalg.spsolve_triangular(R, QB, lower=False)
 
 # Recover a solution (as a dense array):
 x = numpy.zeros( ( M.shape[1], B.shape[1] ), dtype = result.dtype )
