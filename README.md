@@ -47,19 +47,19 @@ r = rank  # r could be min(M.shape) if M is full-rank
 # The system is only solvable if the lower part of Q.T @ B is all zero:
 print( "System is solvable if this is zero:", abs( (( Q.tocsc()[:,r:] ).T ).dot( B ) ).sum() )
 
-# Use CSC format for fast indexing of columns.
-R = R.tocsc()[:r,:r]
-Q = Q.tocsc()[:,:r]
-QB = (Q.T).dot(B).tocsc()  # for best performance, spsolve() wants the RHS to be in CSC format.
-result = scipy.sparse.linalg.spsolve(R, QB)
+
+R = R.tocsr()[:r,:r] #for best performance, spsolve_triangular() wants the Matrix to be in CSR format.
+Q = Q.tocsc()[:,:r] # Use CSC format for fast indexing of columns.
+QB = (Q.T).dot(B).todense()  # spsolve_triangular() need the RHS in array format.
+result = scipy.sparse.linalg.spsolve_triangular(R, QB, lower=False)
 
 # Recover a solution (as a dense array):
 x = numpy.zeros( ( M.shape[1], B.shape[1] ), dtype = result.dtype )
-x[:r] = result.todense()
+x[:r] = result
 x[E] = x.copy()
 
 # Recover a solution (as a sparse matrix):
-x = scipy.sparse.vstack( ( result.tocoo(), scipy.sparse.coo_matrix( ( M.shape[1] - rank, B.shape[1] ), dtype = result.dtype ) ) )
+x = scipy.sparse.vstack( ( result, scipy.sparse.coo_matrix( ( M.shape[1] - rank, B.shape[1] ), dtype = result.dtype ) ) )
 x.row = E[ x.row ]
 ```
 
