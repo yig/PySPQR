@@ -267,6 +267,36 @@ void *cholmod_l_free	/* always returns NULL */
     cholmod_common *Common
 ) ;
 
+/* cs_spsolve 
+int cs_spsolve 
+{
+*/
+
+
+
+/* [Z,R,E] = qz(A), returning Z, R, and E */
+SuiteSparse_long SuiteSparseQR_C /* returns ???, (-1) if failure */
+(
+    /* inputs: */
+    int ordering,               /* all, except 3:given treated as 0:fixed */
+    double tol,                 /* columns with 2-norm <= tol treated as 0 */
+    SuiteSparse_long econ,      /* e = max(min(m,econ),rank(A)) */
+    int getCTX,                 /* 0:Z=C, 1:Z=c', 2: z=X */
+    cholmod_sparse *A,          /* m-by-n sparse matrix to factorize */
+    cholmod_sparse *Bsparse,
+    cholmod_dense *Bdense,
+    /* outputs: */
+    cholmod_sparse **Zsparse,   /* m-by-e sparse matrix */
+    cholmod_dense **Zdense,
+    cholmod_sparse **R,         /* e-by-n sparse matrix */
+    SuiteSparse_long **E,       /* size n column perm, NULL if identity */
+    cholmod_sparse **H,         /* m-by-nh Householder vectors */
+    SuiteSparse_long **HPinv,   /* size m row permutation */
+    cholmod_dense **HTau,       /* 1-by-nh Householder coefficients */
+    cholmod_common *cc          /* workspace and parameters */
+) ;
+
+
 /* [Q,R,E] = qr(A), returning Q as a sparse matrix */
 SuiteSparse_long SuiteSparseQR_C_QR /* returns rank(A) est., (-1) if failure */
 (
@@ -281,6 +311,7 @@ SuiteSparse_long SuiteSparseQR_C_QR /* returns rank(A) est., (-1) if failure */
     SuiteSparse_long **E,       /* size n column perm, NULL if identity */
     cholmod_common *cc          /* workspace and parameters */
 ) ;
+
 
 /* X = A\B where B is dense */
 cholmod_dense *SuiteSparseQR_C_backslash    /* returns X, NULL if failure */
