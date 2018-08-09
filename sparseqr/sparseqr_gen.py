@@ -274,7 +274,7 @@ int cs_spsolve
 
 
 
-/* [Z,R,E] = qz(A), returning Z, R, and E */
+/* [Z,R,E] = rz(A), returning Z, R, and E */
 SuiteSparse_long SuiteSparseQR_C /* returns ???, (-1) if failure */
 (
     /* inputs: */

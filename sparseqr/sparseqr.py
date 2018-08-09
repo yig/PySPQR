@@ -199,8 +199,7 @@ def cholmod_free_dense( A ):
 
 
 ## Solvers
-#BS: I took the function definition for SuiteSpareQR_C and replaced everything that looked unnecessary with ffi.NULL.  
-def qz(A, B, tolerance = None):
+def rz(A, B, tolerance = None):
     getCTX=int(0)
     chol_A = scipy2cholmodsparse( A )
     chol_b = numpy2cholmoddense(  B )
