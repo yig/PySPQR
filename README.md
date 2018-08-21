@@ -102,7 +102,7 @@ or leave them in their directory and call it as a module.
 # Dependencies
 
 * [SciPy/NumPy](http://www.scipy.org)
-* [SuiteSparseQR](http://faculty.cse.tamu.edu/davis/suitesparse.html) (`brew install suitesparse`)
+* [SuiteSparseQR](http://faculty.cse.tamu.edu/davis/suitesparse.html) (macOS: `brew install suitesparse`; debian/ubuntu linux: `apt-get install libsuitesparse-dev`)
 * [cffi](http://cffi.readthedocs.io/) (`pip install cffi`)
 
 # License
