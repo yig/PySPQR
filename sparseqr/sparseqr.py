@@ -200,7 +200,7 @@ def cholmod_free_dense( A ):
 
 ## Solvers
 
-def qr( A, tolerance = None ):
+def qr( A, tolerance = None, economy = False ):
     '''
     Given a sparse matrix A,
     returns Q, R, E, rank such that:
@@ -254,11 +254,13 @@ def qr( A, tolerance = None ):
 
     if tolerance is None: tolerance = lib.SPQR_DEFAULT_TOL
 
+    econ = A.shape[1] if economy else A.shape[0]
+
     rank = lib.SuiteSparseQR_C_QR(
         ## Input
         lib.SPQR_ORDERING_DEFAULT,
         tolerance,
-        A.shape[0],
+        econ,
         chol_A,
         ## Output
         chol_Q,
