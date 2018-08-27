@@ -200,7 +200,7 @@ def cholmod_free_dense( A ):
 
 ## Solvers
 
-def qr( A, tolerance = None, economy = False ):
+def qr( A, tolerance = None, economy = None ):
     '''
     Given a sparse matrix A,
     returns Q, R, E, rank such that:
@@ -210,6 +210,11 @@ def qr( A, tolerance = None, economy = False ):
     If optional `tolerance` parameter is negative, it has the following meanings:
         #define SPQR_DEFAULT_TOL ...       /* if tol <= -2, the default tol is used */
         #define SPQR_NO_TOL ...            /* if -2 < tol < 0, then no tol is used */
+
+    For A an m-by-n matrix, Q will be m-by-m and R will be m-by-n.
+
+    If optional `economy` parameter is truthy, Q will be m-by-k and R will be
+    k-by-n, where k = min(m, n).
 
     The performance-optimal format for A is scipy.sparse.coo_matrix.
 
@@ -253,6 +258,8 @@ def qr( A, tolerance = None, economy = False ):
     chol_E = ffi.new("SuiteSparse_long**")
 
     if tolerance is None: tolerance = lib.SPQR_DEFAULT_TOL
+
+    if economy is None: economy = False
 
     econ = A.shape[1] if economy else A.shape[0]
 
