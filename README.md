@@ -47,6 +47,15 @@ r = rank  # r could be min(M.shape) if M is full-rank
 # The system is only solvable if the lower part of Q.T @ B is all zero:
 print( "System is solvable if this is zero:", abs( (( Q.tocsc()[:,r:] ).T ).dot( B ) ).sum() )
 
+# Systems with large non-square matrices can benefit from "economy" decomposition.
+M = scipy.sparse.rand( 20, 5, density=0.1 )
+Q, R, E, rank = sparseqr.qr( M )
+print("Q shape:", Q.shape)  # Q shape: (20, 20)
+print("R shape:", R.shape)  # R shape: (20, 5)
+Q, R, E, rank = sparseqr.qr( M, economy=True )
+print("Q shape:", Q.shape)  # Q shape: (20, 5)
+print("R shape:", R.shape)  # R shape: (5, 5)
+
 # Use CSC format for fast indexing of columns.
 R = R.tocsc()[:r,:r]
 Q = Q.tocsc()[:,:r]
