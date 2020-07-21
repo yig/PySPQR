@@ -11,7 +11,9 @@ from cffi import FFI
 ffibuilder = FFI()
 
 ffibuilder.set_source( "sparseqr._sparseqr",
-    """#include <SuiteSparseQR_C.h>
+    """
+    #define GPU_BLAS
+    #include <SuiteSparseQR_C.h>
 """,
     ## You may need to modify the following line,
     ## which is needed on Ubuntu and harmless on Mac OS.
@@ -27,7 +29,8 @@ typedef int... SuiteSparse_long;
 
 // The cholmod_common struct can't be completely opaque,
 // since we need to allocate space for one.
-typedef struct cholmod_common { ...; } cholmod_common ;
+// We also need the GPU-related flags.
+typedef struct cholmod_common { int useGPU; size_t gpuMemorySize; ...; } cholmod_common ;
 
 // We can keep the cholmod_sparse struct opaque since we will only ever
 // interact with it by converting to and from a triplet struct.
@@ -104,6 +107,16 @@ int cholmod_l_start (cholmod_common *) ;
 /* cholmod_finish:  last call to CHOLMOD */
 /* -------------------------------------------------------------------------- */
 int cholmod_l_finish (cholmod_common *) ;
+
+/* -------------------------------------------------------------------------- */
+/* cholmod_l_gpu_memorysize:  query GPU memory */
+/* -------------------------------------------------------------------------- */
+int cholmod_l_gpu_memorysize /* GPU memory size available, 1 if no GPU */
+(
+    size_t         *total_mem,
+    size_t         *available_mem,
+    cholmod_common *Common
+) ;
 
 /* -------------------------------------------------------------------------- */
 /* cholmod_free_sparse:  free a sparse matrix */
