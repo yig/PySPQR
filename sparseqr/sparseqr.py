@@ -6,6 +6,8 @@ Description: Wrapper for SuiteSparse qr() and solve() functions. Matlab and Juli
 
 from __future__ import print_function, division, absolute_import
 
+USE_GPU = True
+
 # The compilation here works only if the files have been copied locally into the project,
 # as the compile requires write access into the directory the files reside in.
 #
@@ -50,6 +52,15 @@ Helpful links for developers:
 ## Initialize cholmod
 cc = ffi.new("cholmod_common*")
 lib.cholmod_l_start( cc )
+## Tell CHOLMOD to use the GPU
+if USE_GPU:
+    total_mem = ffi.new("size_t*")
+    available_mem = ffi.new("size_t*")
+    cc.useGPU = True
+    cholmod_l_gpu_memorysize( total_mem, available_mem, cc )
+    cc.gpuMemorySize = available_mem
+    if cc.gpuMemorySize <= 1:
+        print( "No GPU available")
 
 ## Set up cholmod deinit to run when Python exits
 def _deinit():
