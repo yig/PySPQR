@@ -199,6 +199,50 @@ def cholmod_free_dense( A ):
 
 
 ## Solvers
+def rz(A, B, tolerance = None):
+    getCTX=int(0)
+    chol_A = scipy2cholmodsparse( A )
+    chol_b = numpy2cholmoddense(  B )
+    chol_Z = ffi.new("cholmod_dense**")
+    chol_R = ffi.new("cholmod_sparse**")
+    chol_E = ffi.new("SuiteSparse_long**")
+    if tolerance is None:
+        tolerance=0.
+        
+    rank = lib.SuiteSparseQR_C(
+        ## Input
+        lib.SPQR_ORDERING_DEFAULT,
+        tolerance,
+        A.shape[1],
+        getCTX,
+        chol_A,
+        ffi.NULL,
+        chol_b,
+        ## Output
+        ffi.NULL,
+        chol_Z,
+        chol_R,
+        chol_E,
+        ffi.NULL,
+        ffi.NULL,
+        ffi.NULL,
+        cc
+        )
+    scipy_Z = cholmoddense2numpy( chol_Z[0] )
+    scipy_R = cholmodsparse2scipy( chol_R[0] )
+
+    ## If chol_E is null, there was no permutation.
+    if chol_E == ffi.NULL:
+        E = None
+    else:
+        E = asarray( ffi, chol_E[0], A.shape[1] ).copy()
+
+    ## Free cholmod stuff
+    cholmod_free_dense( chol_Z[0] )
+    cholmod_free_sparse( chol_R[0] )
+
+    return scipy_Z, scipy_R, E, rank
+
 
 def qr( A, tolerance = None, economy = None ):
     '''
@@ -364,7 +408,6 @@ def _solve_with_dense_rhs( A, b, tolerance = None ):
     cholmod_free_sparse( chol_A )
     cholmod_free_dense(  chol_b )
     cholmod_free_dense(  chol_x )
-
     return numpy_x
 
 def _solve_with_sparse_rhs( A, b, tolerance = None ):

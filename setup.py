@@ -3,6 +3,13 @@
 from __future__ import division, print_function, absolute_import
 
 from setuptools import setup
+import numpy
+import os
+
+try:
+    include_dirs=[numpy.get_include(), os.path.join(os.environ['CONDA_PREFIX'], 'include')]
+except Exception:
+    include_dirs=None
 
 setup(
     name = "sparseqr",
@@ -54,7 +61,7 @@ Supports Python 2.7 and 3.4.
     cffi_modules = ["sparseqr/sparseqr_gen.py:ffibuilder"],
     install_requires = ["numpy", "scipy", "cffi>=1.0.0"],
     provides = ["sparseqr"],
-
+    include_dirs=include_dirs,
     # keywords for PyPI (in case you upload your project)
     #
     # e.g. the keywords your project uses as topics on GitHub, minus "python" (if there)
