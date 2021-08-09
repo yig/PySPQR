@@ -124,6 +124,10 @@ Run:
     poetry build -f sdist
     poetry publish
 
+# Known issues
+
+`pip uninstall sparseqr` won't remove the generated libraries. It will list them with a warning.
+
 # Tested on
 
  - Python 2.7, 3.4, 3.5, and 3.9.
