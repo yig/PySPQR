@@ -77,6 +77,14 @@ x.row = E[ x.row ]
 
 ## Via `pip`
 
+From PyPI:
+
+```bash
+pip install sparseqr
+```
+
+From GitHub:
+
 ```bash
 pip install git+https://github.com/yig/PySPQR.git
 ```
@@ -103,9 +111,15 @@ Copy the three `sparseqr/*.py` files next to your source code,
 or leave them in their directory and call it as a module.
 
 
+# Deploy
+
+    poetry publish --build
+
+
 # Tested on
 
- - Python 2.7, 3.4 and 3.5.
+ - Python 2.7, 3.4, 3.5, and 3.9.
+ - Conda and not conda.
  - Mac OS X, Ubuntu Linux and Linux Mint.
 
 
