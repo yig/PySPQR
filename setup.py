@@ -2,19 +2,30 @@
 #
 from __future__ import division, print_function, absolute_import
 
-from setuptools import setup
-import numpy
+from setuptools import setup #, dist
 import os
 
-try:
-    include_dirs=[numpy.get_include(), os.path.join(os.environ['CONDA_PREFIX'], 'include')]
-except Exception:
-    include_dirs=None
+## Following https://stackoverflow.com/questions/19919905/how-to-bootstrap-numpy-installation-in-setup-py/60740731#60740731
+## I am skeptical that this approach will work on conda.
+# dist.Distribution().fetch_build_eggs(['numpy'])
+# import numpy
+
+## Following: https://stackoverflow.com/questions/19919905/how-to-bootstrap-numpy-installation-in-setup-py/62724864#62724864
+class get_numpy_include(object):
+    """Defer numpy.get_include() until after numpy is installed."""
+
+    def __str__(self):
+        import numpy
+        return numpy.get_include()
+
+include_dirs = [get_numpy_include()]
+if 'CONDA_PREFIX' in os.environ:
+    include_dirs.append( os.path.join(os.environ['CONDA_PREFIX'], 'include') )
 
 setup(
     name = "sparseqr",
-    version = "1.0.0",
-    author = "Yotam Gingold and Juha Jeronen",
+    version = "1.1.0",
+    author = "Yotam Gingold <yotam@yotamgingold.com> and Juha Jeronen <juha.jeronen@tut.fi>",
     url = "https://github.com/yig/PySPQR",
 
     description = "Python wrapper for SuiteSparseQR",
@@ -57,7 +68,7 @@ Supports Python 2.7 and 3.4.
     # See
     #    http://setuptools.readthedocs.io/en/latest/setuptools.html
     #
-    setup_requires = ["cffi>=1.0.0"],
+    setup_requires = ["numpy", "cffi>=1.0.0"],
     cffi_modules = ["sparseqr/sparseqr_gen.py:ffibuilder"],
     install_requires = ["numpy", "scipy", "cffi>=1.0.0"],
     provides = ["sparseqr"],

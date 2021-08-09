@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "sparseqr"
+version = "1.1.0"
+description = "Python wrapper for SuiteSparseQR"
+authors = ["Yotam Gingold <yotam@yotamgingold.com> and Juha Jeronen <juha.jeronen@tut.fi>"]
+license = "Public Domain CC0"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+numpy = "^1.21"
+scipy = "^1.0"
+cffi = "^1.0"
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
