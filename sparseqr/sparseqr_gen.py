@@ -367,7 +367,7 @@ cholmod_sparse *SuiteSparseQR_C_backslash_sparse   /* returns X, or NULL */
 """)
 
 def main():
-    ffibuilder.compile( verbose = True )
+    ffibuilder.compile( verbose = True, tmpdir = os.path.dirname(__file__) )
 
 if __name__ == "__main__":
     main()
