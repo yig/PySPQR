@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "sparseqr"
-version = "1.1.1"
+version = "1.1.2"
 description = "Python wrapper for SuiteSparseQR"
 authors = ["Yotam Gingold <yotam@yotamgingold.com>", "Juha Jeronen <juha.jeronen@tut.fi>"]
 license = "Public Domain CC0"
 
-include ["test/*.py", "README.md", "LICENSE.md"]
+include = ["test/*.py", "README.md", "LICENSE.md"]
 exclude = ["sparseqr/_sparseqr*"]
 
 [tool.poetry.dependencies]
