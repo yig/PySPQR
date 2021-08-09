@@ -113,8 +113,16 @@ or leave them in their directory and call it as a module.
 
 # Deploy
 
-    poetry publish --build
+Change the version in:
 
+    sparseqr/__init__.py
+    setup.py 
+    pyproject.toml 
+
+Run:
+
+    poetry build -f sdist
+    poetry publish
 
 # Tested on
 

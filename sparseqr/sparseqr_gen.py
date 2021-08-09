@@ -367,6 +367,8 @@ cholmod_sparse *SuiteSparseQR_C_backslash_sparse   /* returns X, or NULL */
 """)
 
 def main():
+    ## Two dirnames because ffibuilder.set_source()
+    ## passes the module name: "sparseqr._sparseqr"
     ffibuilder.compile( verbose = True, tmpdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) )
 
 if __name__ == "__main__":
