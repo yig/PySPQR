@@ -48,7 +48,7 @@ Supports Python 2.7 and 3.4.
     #
     # for the standard classifiers.
     #
-    classifiers = [ "Development Status :: 4 - Beta",
+    classifiers = [ "Development Status :: 5 - Production/Stable",
                     "Environment :: Console",
                     "Intended Audience :: Developers",
                     "Intended Audience :: Science/Research",
