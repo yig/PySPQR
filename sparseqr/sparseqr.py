@@ -305,7 +305,11 @@ def qr( A, tolerance = None, economy = None ):
 
     if economy is None: economy = False
 
-    econ = A.shape[1] if economy else A.shape[0]
+    if isinstance(economy, bool):
+        econ = A.shape[1] if economy else A.shape[0]
+    else:
+        # Treat as a number
+        econ = int(economy)
 
     rank = lib.SuiteSparseQR_C_QR(
         ## Input
