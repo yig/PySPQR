@@ -11,8 +11,18 @@ import platform
 
 from cffi import FFI
 
-include_dirs = [ '/usr/include/suitesparse', join('C:', 'Program Files', 'Python', 'suitesparse') ]
+include_dirs = []
+library_dirs = []
 libraries = ['spqr']
+
+if platform.system() == 'Windows':
+    include_dirs.append( join('C:', 'Program Files', 'Python', 'suitesparse') )
+else:
+    include_dirs.append( '/usr/include/suitesparse' )
+    ## Homebrew on macOS arm64 puts headers and libraries
+    ## in `/opt/homebrew`. That's not on the default path, so add them:
+    include_dirs.append( '/opt/homebrew/include' )
+    library_dirs.append( '/opt/homebrew/lib' )
 
 # for compatibility with conda envs
 if 'CONDA_DEFAULT_ENV' in os.environ:
@@ -33,6 +43,7 @@ ffibuilder.set_source( "sparseqr._sparseqr",
     ## You may need to modify the following line,
     ## which is needed on Ubuntu and harmless on Mac OS.
     include_dirs = include_dirs,
+    library_dirs = library_dirs,
     libraries = libraries )
 
 ffibuilder.cdef("""

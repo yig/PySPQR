@@ -113,13 +113,15 @@ or leave them in their directory and call it as a module.
 
 # Deploy
 
-Change the version in:
+1. Change the version in:
 
     sparseqr/__init__.py
     setup.py 
     pyproject.toml 
 
-Run:
+2. Update `CHANGELOG.md`
+
+3. Run:
 
     poetry build -f sdist
     poetry publish
@@ -134,6 +136,7 @@ Run:
  - Conda and not conda.
  - Mac OS X, Ubuntu Linux and Linux Mint.
 
+    PYTHONPATH='.:$PYTHONPATH' python3 test/test.py
 
 # Dependencies
 

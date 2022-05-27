@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sparseqr"
-version = "1.1.2"
+version = "1.2"
 description = "Python wrapper for SuiteSparseQR"
 authors = ["Yotam Gingold <yotam@yotamgingold.com>"]
 license = "Public Domain CC0"

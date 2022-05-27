@@ -11,7 +11,7 @@ import sparseqr
 #
 M = scipy.sparse.rand( 10, 10, density = 0.1 )
 Q, R, E, rank = sparseqr.qr( M )
-print( abs( Q*R - M*sparseqr.permutation_vector_to_matrix(E) ).sum() )  # should be approximately zero
+print( "Should be approximately zero:", abs( Q*R - M*sparseqr.permutation_vector_to_matrix(E) ).sum() ) 
 
 # Solve many linear systems "M x = b for b in columns(B)"
 #
@@ -36,7 +36,7 @@ Q, R, E, rank = sparseqr.qr( M )
 r = rank  # r could be min(M.shape) if M is full-rank
 
 # The system is only solvable if the lower part of Q.T @ B is all zero:
-print( "System is solvable if this is zero:", abs( (( Q.tocsc()[:,r:] ).T ).dot( B ) ).sum() )
+print( "System is solvable if this is zero (unlikely for a random matrix):", abs( (( Q.tocsc()[:,r:] ).T ).dot( B ) ).sum() )
 
 # Use CSC format for fast indexing of columns.
 R = R.tocsc()[:r,:r]
