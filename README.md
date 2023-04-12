@@ -20,7 +20,7 @@ import sparseqr
 #
 M = scipy.sparse.rand( 10, 10, density = 0.1 )
 Q, R, E, rank = sparseqr.qr( M )
-print( abs( Q*R - M*sparseqr.permutation_vector_to_matrix(E) ).sum() )  # should be approximately zero
+print( "Should be approximately zero:", abs( Q*R - M*sparseqr.permutation_vector_to_matrix(E) ).sum() ) 
 
 # Solve many linear systems "M x = b for b in columns(B)"
 #
@@ -34,6 +34,8 @@ x = sparseqr.solve( M, B, tolerance = 0 )
 A = scipy.sparse.rand( 20, 10, density = 0.1 )  # 20 equations, 10 unknowns
 b = numpy.random.random(20)  # one RHS, dense, but could also have many (in shape (20,k))
 x = sparseqr.solve( A, b, tolerance = 0 )
+## Call `rz()`:
+sparseqr.rz( A, b, tolerance = 0 )
 
 # Solve a linear system  M x = B  via QR decomposition
 #
@@ -45,17 +47,17 @@ Q, R, E, rank = sparseqr.qr( M )
 r = rank  # r could be min(M.shape) if M is full-rank
 
 # The system is only solvable if the lower part of Q.T @ B is all zero:
-print( "System is solvable if this is zero:", abs( (( Q.tocsc()[:,r:] ).T ).dot( B ) ).sum() )
+print( "System is solvable if this is zero (unlikely for a random matrix):", abs( (( Q.tocsc()[:,r:] ).T ).dot( B ) ).sum() )
 
 # Systems with large non-square matrices can benefit from "economy" decomposition.
 M = scipy.sparse.rand( 20, 5, density=0.1 )
 B = scipy.sparse.rand( 20, 5, density = 0.1 )
 Q, R, E, rank = sparseqr.qr( M )
-print("Q shape:", Q.shape)  # Q shape: (20, 20)
-print("R shape:", R.shape)  # R shape: (20, 5)
+print("Q shape (should be 20x20):", Q.shape)
+print("R shape (should be 20x5):", R.shape)
 Q, R, E, rank = sparseqr.qr( M, economy=True )
-print("Q shape:", Q.shape)  # Q shape: (20, 5)
-print("R shape:", R.shape)  # R shape: (5, 5)
+print("Q shape (should be 20x5):", Q.shape)
+print("R shape (should be 5x5):", R.shape)
 
 # Use CSC format for fast indexing of columns.
 R = R.tocsc()[:r,:r]
@@ -115,16 +117,20 @@ or leave them in their directory and call it as a module.
 
 1. Change the version in:
 
+    ```
     sparseqr/__init__.py
-    setup.py 
-    pyproject.toml 
+    setup.py
+    pyproject.toml
+    ```
 
 2. Update `CHANGELOG.md`
 
 3. Run:
 
+    ```
     poetry build -f sdist
     poetry publish
+    ```
 
 # Known issues
 

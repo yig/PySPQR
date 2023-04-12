@@ -25,6 +25,8 @@ x = sparseqr.solve( M, B, tolerance = 0 )
 A = scipy.sparse.rand( 20, 10, density = 0.1 )  # 20 equations, 10 unknowns
 b = numpy.random.random(20)  # one RHS, dense, but could also have many (in shape (20,k))
 x = sparseqr.solve( A, b, tolerance = 0 )
+## Call `rz()`:
+sparseqr.rz( A, b, tolerance = 0 )
 
 # Solve a linear system  M x = B  via QR decomposition
 #
@@ -37,6 +39,16 @@ r = rank  # r could be min(M.shape) if M is full-rank
 
 # The system is only solvable if the lower part of Q.T @ B is all zero:
 print( "System is solvable if this is zero (unlikely for a random matrix):", abs( (( Q.tocsc()[:,r:] ).T ).dot( B ) ).sum() )
+
+# Systems with large non-square matrices can benefit from "economy" decomposition.
+M = scipy.sparse.rand( 20, 5, density=0.1 )
+B = scipy.sparse.rand( 20, 5, density = 0.1 )
+Q, R, E, rank = sparseqr.qr( M )
+print("Q shape (should be 20x20):", Q.shape)
+print("R shape (should be 20x5):", R.shape)
+Q, R, E, rank = sparseqr.qr( M, economy=True )
+print("Q shape (should be 20x5):", Q.shape)
+print("R shape (should be 5x5):", R.shape)
 
 # Use CSC format for fast indexing of columns.
 R = R.tocsc()[:r,:r]
@@ -52,4 +64,3 @@ x[E] = x.copy()
 # Recover a solution (as a sparse matrix):
 x = scipy.sparse.vstack( ( result.tocoo(), scipy.sparse.coo_matrix( ( M.shape[1] - rank, B.shape[1] ), dtype = result.dtype ) ) )
 x.row = E[ x.row ]
-

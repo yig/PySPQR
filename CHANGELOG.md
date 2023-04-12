@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v1.2.1] - 2023-04-12
+### Fixed
+- Fixed a memory leak in `qr()` and `rz()`.
+### Changed
+- Bumped minimal Python version to 3.8.
+- `rz()` is called by the test script. Its output is ignored.
+
 ## [v1.2] - 2022-05-27
 ### Added
 - Added support for partial "economy" decompositions. (Christoph Hansknecht <c.hansknecht@tu-braunschweig.de>): 'The "economy" option can be used in SPQR to compute a QR factorization of a (m x n) matrix with m < n consisting of blocks Q_1, and Q_2, where Q_1 has as shape of (m x n) and Q_2 of (m x k - n). For k = n we get the reduced form, for k = m the full one. For k in between m and n, SPQR yields a block that spans part of the kernel of A. This patch adds this functionality to PySPQR.'

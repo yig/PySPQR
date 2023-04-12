@@ -240,6 +240,8 @@ def rz(A, B, tolerance = None):
     ## Free cholmod stuff
     cholmod_free_dense( chol_Z[0] )
     cholmod_free_sparse( chol_R[0] )
+    cholmod_free_sparse( chol_A )
+    cholmod_free_dense(  chol_b )
 
     return scipy_Z, scipy_R, E, rank
 
@@ -342,6 +344,7 @@ def qr( A, tolerance = None, economy = None ):
     ## Free cholmod stuff
     cholmod_free_sparse( chol_Q[0] )
     cholmod_free_sparse( chol_R[0] )
+    cholmod_free_sparse( chol_A )
     ## Apparently we don't need to do this. (I get a malloc error.)
     # lib.cholmod_l_free( A.shape[1], ffi.sizeof("SuiteSparse_long"), chol_E, cc )
 
