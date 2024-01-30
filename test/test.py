@@ -64,3 +64,14 @@ x[E] = x.copy()
 # Recover a solution (as a sparse matrix):
 x = scipy.sparse.vstack( ( result.tocoo(), scipy.sparse.coo_matrix( ( M.shape[1] - rank, B.shape[1] ), dtype = result.dtype ) ) )
 x.row = E[ x.row ]
+
+#initialize QR Factorization object
+M = scipy.sparse.rand( 100, 100, density=0.05 )
+
+#perform QR factorization, but store in Householder form
+QR= sparseqr.qr_factorize( M )
+X = numpy.zeros((M.shape[0],1))
+X[-1,0]=1 #change last entry to a 1 (this allows us to )
+
+Y = sparseqr.qmult(QR,X)
+print("Y shape (should be 100x1):",Y.shape)
