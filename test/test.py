@@ -71,7 +71,9 @@ M = scipy.sparse.rand( 100, 100, density=0.05 )
 #perform QR factorization, but store in Householder form
 QR= sparseqr.qr_factorize( M )
 X = numpy.zeros((M.shape[0],1))
-X[-1,0]=1 #change last entry to a 1 (this allows us to )
+#change last entry of the first column to a 1 
+# this allows us to construct only the first column of Q
+X[-1,0]=1 
 
 Y = sparseqr.qmult(QR,X)
 print("Y shape (should be 100x1):",Y.shape)

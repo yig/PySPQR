@@ -391,6 +391,7 @@ def qmult( QR, X, method=1):
         a dense matrix
     returns Q applied to X in a dense matrix    
 
+    From the suitesparse documentation:
     /*
     Applies Q in Householder form (as stored in the QR factorization object
     returned by SuiteSparseQR_C_factorize) to a dense matrix X.
