@@ -351,6 +351,77 @@ def qr( A, tolerance = None, economy = None ):
     return scipy_Q, scipy_R, E, rank
 
 
+def qr_factorize( A, tolerance = None):
+    '''
+    Given a sparse matrix A,
+    returns a QR factorization in householder form    
+
+    If optional `tolerance` parameter is negative, it has the following meanings:
+        #define SPQR_DEFAULT_TOL ...       /* if tol <= -2, the default tol is used */
+        #define SPQR_NO_TOL ...            /* if -2 < tol < 0, then no tol is used */
+
+    For A an m-by-n matrix, Q will be m-by-m and R will be m-by-n.
+
+        The performance-optimal format for A is scipy.sparse.coo_matrix.
+
+    '''
+
+    chol_A = scipy2cholmodsparse( A )
+
+    if tolerance is None: tolerance = lib.SPQR_DEFAULT_TOL
+
+    QR = lib.SuiteSparseQR_C_factorize(
+        ## Input
+        lib.SPQR_ORDERING_DEFAULT,
+        tolerance,
+        chol_A,
+        cc
+        )
+
+    cholmod_free_sparse( chol_A )
+    ## Apparently we don't need to do this. (I get a malloc error.)
+    # lib.cholmod_l_free( A.shape[1], ffi.sizeof("SuiteSparse_long"), chol_E, cc )
+
+    return QR
+
+
+def qmult( QR, X, method=1):
+    '''
+    Given a QR factorization struct
+        a dense matrix
+    returns Q applied to X in a dense matrix    
+
+    From the suitesparse documentation:
+    /*
+    Applies Q in Householder form (as stored in the QR factorization object
+    returned by SuiteSparseQR_C_factorize) to a dense matrix X.
+
+    method SPQR_QTX (0): Y = Q'*X
+    method SPQR_QX  (1): Y = Q*X
+    method SPQR_XQT (2): Y = X*Q'
+    method SPQR_XQ  (3): Y = X*Q
+    */
+
+    '''
+
+    chol_X = numpy2cholmoddense(  X )
+
+    chol_Y = lib.SuiteSparseQR_C_qmult(
+        ## Input
+        method, 
+        QR,
+        chol_X,
+        cc
+        )
+    numpy_Y = cholmoddense2numpy( chol_Y )
+
+    ## Free cholmod stuff
+    cholmod_free_dense(  chol_X )
+    cholmod_free_dense(  chol_Y )
+
+    return numpy_Y
+
+
 def solve( A, b, tolerance = None ):
     '''
     Given a sparse m-by-n matrix A, and dense or sparse m-by-k matrix (storing k RHS vectors) b,
