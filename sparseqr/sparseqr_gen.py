@@ -27,11 +27,12 @@ else:
 # for compatibility with conda envs
 if 'CONDA_DEFAULT_ENV' in os.environ:
     homedir = expanduser("~")
-    include_dirs.append( join(homedir, 'anaconda3', 'envs', os.environ['CONDA_DEFAULT_ENV'], 'Library', 'include', 'suitesparse') )
-    include_dirs.append( join(homedir, 'miniconda3', 'envs', os.environ['CONDA_DEFAULT_ENV'], 'Library', 'include', 'suitesparse') )
-# for compatibility with hosted jupyter environments
-if 'CONDA_PREFIX' in os.environ:
-    include_dirs.append( join(os.environ['CONDA_PREFIX'], 'include', 'suitesparse'))
+
+    for packager in ['anaconda3','miniconda3','condaforge','miniforge','mambaforge']:
+        for sub in ['','Library']:
+            thedir=join(homedir, packager, 'envs', os.environ['CONDA_DEFAULT_ENV'], sub, 'include', 'suitesparse')
+            if os.path.isdir(thedir):
+                include_dirs.append(thedir)
 
 if platform.system() == 'Windows':
     # https://github.com/yig/PySPQR/issues/6
