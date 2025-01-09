@@ -21,6 +21,8 @@ else:
     include_dirs.append( '/usr/include/suitesparse' )
     ## Homebrew on macOS arm64 puts headers and libraries
     ## in `/opt/homebrew`. That's not on the default path, so add them:
+    include_dirs.append( '/opt/homebrew/include/suitesparse' )
+    # Does this work for anyone? At one point I thought it worked for me, but maybe I didn't test properly.
     include_dirs.append( '/opt/homebrew/include' )
     library_dirs.append( '/opt/homebrew/lib' )
 
