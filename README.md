@@ -138,9 +138,9 @@ or leave them in their directory and call it as a module.
 
 # Tested on
 
- - Python 2.7, 3.4, 3.5, and 3.9.
+ - Python 2.7, 3.4, 3.5, 3.9, 3.13.
  - Conda and not conda.
- - Mac OS X, Ubuntu Linux and Linux Mint.
+ - macOS, Ubuntu Linux, and Linux Mint.
 
     PYTHONPATH='.:$PYTHONPATH' python3 test/test.py
 
@@ -148,7 +148,7 @@ or leave them in their directory and call it as a module.
 
 * [SciPy/NumPy](http://www.scipy.org)
 * [SuiteSparseQR](http://faculty.cse.tamu.edu/davis/suitesparse.html) (macOS: `brew install suitesparse`; debian/ubuntu linux: `apt-get install libsuitesparse-dev`)
-* [cffi](http://cffi.readthedocs.io/) (`pip install cffi`)
+* [cffi](http://cffi.readthedocs.io/)
 
 # License
 

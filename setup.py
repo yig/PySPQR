@@ -24,7 +24,7 @@ if 'CONDA_PREFIX' in os.environ:
 
 setup(
     name = "sparseqr",
-    version = "1.2.1",
+    version = "1.3",
     author = "Yotam Gingold <yotam@yotamgingold.com>",
     url = "https://github.com/yig/PySPQR",
 

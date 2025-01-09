@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v1.3] - 2025-01-09
+### Added
+- Bindings for `qr_factorize` and `qmult` (thanks to jkrokowski)
+
+### Fixed
+- Compatibility with more environments (more search paths, newer numpy, setuptools dependency)
+- Readme example uses `spsolve_triangular`.
+
 ## [v1.2.1] - 2023-04-12
 ### Fixed
 - Fixed a memory leak in `qr()` and `rz()`.
