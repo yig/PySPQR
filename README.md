@@ -77,6 +77,8 @@ x.row = E[ x.row ]
 
 # Installation
 
+This module depends on your own installation of [SuiteSparseQR](http://faculty.cse.tamu.edu/davis/suitesparse.html) (macOS: `brew install suitesparse`; debian/ubuntu linux: `apt-get install libsuitesparse-dev`).
+
 ## Via `pip`
 
 From PyPI:
@@ -146,9 +148,14 @@ or leave them in their directory and call it as a module.
 
 # Dependencies
 
+These are installed via pip:
+
 * [SciPy/NumPy](http://www.scipy.org)
-* [SuiteSparseQR](http://faculty.cse.tamu.edu/davis/suitesparse.html) (macOS: `brew install suitesparse`; debian/ubuntu linux: `apt-get install libsuitesparse-dev`)
 * [cffi](http://cffi.readthedocs.io/)
+
+These must be installed manually:
+
+* [SuiteSparseQR](http://faculty.cse.tamu.edu/davis/suitesparse.html) (macOS: `brew install suitesparse`; debian/ubuntu linux: `apt-get install libsuitesparse-dev`)
 
 # License
 
