@@ -4,9 +4,7 @@ License: Public Domain [CC0](http://creativecommons.org/publicdomain/zero/1.0/)
 Description: Wrapper for SuiteSparse qr() and solve() functions. Matlab and Julia have it, Python should have it, too.
 '''
 
-from __future__ import print_function, division, absolute_import
 import os
-from os.path import join, expanduser
 import platform
 
 from cffi import FFI
@@ -15,26 +13,21 @@ include_dirs = []
 library_dirs = []
 libraries = ['spqr']
 
-if platform.system() == 'Windows':
-    include_dirs.append( join('C:', 'Program Files', 'Python', 'suitesparse') )
+## If we're using conda, use the conda paths
+if 'CONDA_PREFIX' in os.environ:
+    include_dirs.append( os.path.join(os.environ['CONDA_PREFIX'], 'include', 'suitesparse') )
+    library_dirs.append( os.path.join(os.environ['CONDA_PREFIX'], 'lib') )
+
+## Otherwise, add common system-wide directories
 else:
-    include_dirs.append( '/usr/include/suitesparse' )
-    ## Homebrew on macOS arm64 puts headers and libraries
-    ## in `/opt/homebrew`. That's not on the default path, so add them:
-    include_dirs.append( '/opt/homebrew/include/suitesparse' )
-    # Does this work for anyone? At one point I thought it worked for me, but maybe I didn't test properly.
-    include_dirs.append( '/opt/homebrew/include' )
-    library_dirs.append( '/opt/homebrew/lib' )
-
-# for compatibility with conda envs
-if 'CONDA_DEFAULT_ENV' in os.environ:
-    homedir = expanduser("~")
-
-    for packager in ['anaconda3','miniconda3','condaforge','miniforge','mambaforge']:
-        for sub in ['','Library']:
-            thedir=join(homedir, packager, 'envs', os.environ['CONDA_DEFAULT_ENV'], sub, 'include', 'suitesparse')
-            if os.path.isdir(thedir):
-                include_dirs.append(thedir)
+    if platform.system() == 'Windows':
+        include_dirs.append( join('C:', 'Program Files', 'Python', 'suitesparse') )
+    else:
+        include_dirs.append( '/usr/include/suitesparse' )
+        ## Homebrew on macOS arm64 puts headers and libraries
+        ## in `/opt/homebrew`. That's not on the default path, so add them:
+        include_dirs.append( '/opt/homebrew/include/suitesparse' )
+        library_dirs.append( '/opt/homebrew/lib' )
 
 if platform.system() == 'Windows':
     # https://github.com/yig/PySPQR/issues/6
@@ -42,6 +35,11 @@ if platform.system() == 'Windows':
 'klu','lapack','ldl','lumfpack','metis','suitesparseconfig','libblas'] )
 
 ffibuilder = FFI()
+
+## Uncomment this and install with `pip install -v` to see the arguments to `set_source`.
+# print( "cffi include_dirs:", include_dirs )
+# print( "cffi library_dirs:", library_dirs )
+# print( "cffi libraries:", libraries )
 
 ffibuilder.set_source( "sparseqr._sparseqr",
     """#include <SuiteSparseQR_C.h>

@@ -77,7 +77,9 @@ x.row = E[ x.row ]
 
 # Installation
 
-This module depends on your own installation of [SuiteSparseQR](http://faculty.cse.tamu.edu/davis/suitesparse.html) (macOS: `brew install suitesparse`; debian/ubuntu linux: `apt-get install libsuitesparse-dev`).
+Before installing this module, you must first install [SuiteSparseQR](http://faculty.cse.tamu.edu/davis/suitesparse.html). You can do that via conda (`conda install suitesparse`) or your system's package manager (macOS: `brew install suitesparse`; debian/ubuntu linux: `apt-get install libsuitesparse-dev`).
+
+Now you are ready to install this module.
 
 ## Via `pip`
 
@@ -93,22 +95,6 @@ From GitHub:
 pip install git+https://github.com/yig/PySPQR.git
 ```
 
-## Manually from GitHub
-
-As user:
-
-```bash
-git clone https://github.com/yig/PySPQR.git
-cd PySPQR
-python setup.py install --user
-```
-
-As admin, change the last command to
-
-```bash
-sudo python setup.py install
-```
-
 ## Directly
 
 Copy the three `sparseqr/*.py` files next to your source code,
@@ -121,7 +107,6 @@ or leave them in their directory and call it as a module.
 
     ```
     sparseqr/__init__.py
-    setup.py
     pyproject.toml
     ```
 
@@ -130,9 +115,10 @@ or leave them in their directory and call it as a module.
 3. Run:
 
     ```
-    poetry build -f sdist
-    poetry publish
+    flit publish --format sdist
     ```
+
+We don't publish binary wheels, because it must be compiled against suite-sparse as a system dependency. We could publish a `none-any` wheel, which would cause compilation to happen the first time the module is imported rather than when it is installed. Is there a point to that?
 
 # Known issues
 
@@ -140,7 +126,7 @@ or leave them in their directory and call it as a module.
 
 # Tested on
 
- - Python 2.7, 3.4, 3.5, 3.9, 3.13.
+ - Python 3.9, 3.13.
  - Conda and not conda.
  - macOS, Ubuntu Linux, and Linux Mint.
 

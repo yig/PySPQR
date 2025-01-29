@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v1.4] - 2025-01-28
+### Fixed
+- Modernized the build system (`pyproject.toml`).
+- Changed the way suite-sparse is found to be more robust.
+
 ## [v1.3] - 2025-01-09
 ### Added
 - Bindings for `qr_factorize` and `qmult` (thanks to jkrokowski)

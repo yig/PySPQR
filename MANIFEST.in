@@ -1,4 +1,0 @@
-include test/*.py
-include README.md
-include LICENSE.md
-exclude sparseqr/_sparseqr*
