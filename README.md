@@ -112,10 +112,18 @@ or leave them in their directory and call it as a module.
 
 2. Update `CHANGELOG.md`
 
-3. Run:
+3. Commit to git. Push to GitHub.
+
+4. Run (in a clean repos, e.g., `git clone . clean; cd clean`):
 
     ```
     flit publish --format sdist
+    ```
+
+    Using [uv](https://docs.astral.sh/uv/) and [PyPI API tokens](https://pypi.org/help/#apitoken):
+
+    ```
+    FLIT_USERNAME=__token__ uv tool run --with flit flit publish --format sdist
     ```
 
 We don't publish binary wheels, because it must be compiled against suite-sparse as a system dependency. We could publish a `none-any` wheel, which would cause compilation to happen the first time the module is imported rather than when it is installed. Is there a point to that?
