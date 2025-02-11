@@ -21,7 +21,7 @@ if 'CONDA_PREFIX' in os.environ:
 ## Otherwise, add common system-wide directories
 else:
     if platform.system() == 'Windows':
-        include_dirs.append( join('C:', 'Program Files', 'Python', 'suitesparse') )
+        include_dirs.append( os.path.join('C:', 'Program Files', 'Python', 'suitesparse') )
     else:
         include_dirs.append( '/usr/include/suitesparse' )
         ## Homebrew on macOS arm64 puts headers and libraries

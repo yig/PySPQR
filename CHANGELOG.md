@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v1.4.1] - 2025-02-10
+### Fixed
+- An import statement got lost in the 1.4 update.
+
 ## [v1.4] - 2025-01-28
 ### Fixed
 - Modernized the build system (`pyproject.toml`).
