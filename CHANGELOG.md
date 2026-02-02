@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+- Add complex matrix support in `cholmodsparse2scipy` and `scipy2cholmodsparse`
+
 ## [v1.4.1] - 2025-02-10
 ### Fixed
 - An import statement got lost in the 1.4 update.
