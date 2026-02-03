@@ -17,6 +17,9 @@ libraries = ['spqr']
 if 'CONDA_PREFIX' in os.environ:
     include_dirs.append( os.path.join(os.environ['CONDA_PREFIX'], 'include', 'suitesparse') )
     library_dirs.append( os.path.join(os.environ['CONDA_PREFIX'], 'lib') )
+    ## For Windows:
+    include_dirs.append( os.path.join(os.environ['CONDA_PREFIX'], 'Library', 'include', 'suitesparse') )
+    library_dirs.append( os.path.join(os.environ['CONDA_PREFIX'], 'Library', 'lib') )
 
 ## Otherwise, add common system-wide directories
 else:
