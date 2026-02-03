@@ -35,7 +35,7 @@ import _cffi_backend
 import scipy.sparse
 import numpy
 
-from .cffi_asarray import asarray
+from .cffi_asarray import asarray, ctype2dtype
 
 '''
 Helpful links for developers:
@@ -90,9 +90,10 @@ When no longer needed, the returned CHOLMOD sparse matrix must be deallocated us
     Avals = ffi.cast( "double*", chol_A.x )
     if is_complex:
         # chol_A.x has size 2*nnz and real and imag parts are interleaved [real, imag, real, imag, ...]
-        for k in range(nnz):
-            Avals[2 * k] = scipy_A.data[k].real
-            Avals[2 * k + 1] = scipy_A.data[k].imag
+        array_element_size = ffi.sizeof(ffi.typeof(Avals).item)
+        Avals_view = numpy.frombuffer(ffi.buffer(Avals, 2*nnz * array_element_size), ctype2dtype["double"])
+        Avals_view[0::2] = scipy_A.data.real
+        Avals_view[1::2] = scipy_A.data.imag
     else:
         Avals[0:nnz] = scipy_A.data
 
