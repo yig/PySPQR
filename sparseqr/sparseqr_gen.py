@@ -35,6 +35,7 @@ else:
 if platform.system() == 'Windows':
     # https://github.com/yig/PySPQR/issues/6
     # libraries.extend( ['amd','btf','camd','ccolamd','cholmod','colamd','cxsparse', 'klu','lapack','ldl','lumfpack','metis','suitesparseconfig','libblas'] )
+    libraries.extend( ['cholmod'] )
     pass
 
 ffibuilder = FFI()
