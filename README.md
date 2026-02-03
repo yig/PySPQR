@@ -133,7 +133,7 @@ GitHub Continuous Integration (CI) tests:
 
  - Python 3.9, 3.10, 3.11, 3.12, 3.13, 3.14.
  - macOS, Ubuntu Linux, and Windows.
- - conda (Windows) and not conda.
+ - conda (Windows) and not conda (Linux/macOS). I tested conda on macOS manually at one point.
 
 Test manually with:
 

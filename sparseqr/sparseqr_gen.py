@@ -34,9 +34,9 @@ else:
 
 if platform.system() == 'Windows':
     # https://github.com/yig/PySPQR/issues/6
+    ## Update: This list fails for `windows-latest` on GitHub. Some are missing. The only needed library is `cholmod`.
     # libraries.extend( ['amd','btf','camd','ccolamd','cholmod','colamd','cxsparse', 'klu','lapack','ldl','lumfpack','metis','suitesparseconfig','libblas'] )
     libraries.extend( ['cholmod'] )
-    pass
 
 ffibuilder = FFI()
 
