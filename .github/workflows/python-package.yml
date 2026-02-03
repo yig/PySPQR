@@ -57,6 +57,10 @@ jobs:
       if: runner.os == 'Windows'
       shell: bash -el {0}
       run: |
+        python3 -c 'import os; print( os.environ["INCLUDE"] )'
+        python3 -c 'import os; print( os.environ["CPATH"] )'
+        python3 -c 'import os; print( os.environ["C_INCLUDE_PATH"] )'
+        python3 -c 'import os; from pathlib import Path; [print(path) for path in Path(os.environ["CONDA_PREFIX"]).parent.parent.rglob("*")]'
         python3 -c 'import os; from pathlib import Path; [print(path) for path in Path(os.environ["CONDA_PREFIX"]).rglob("*")]'
         python -m pip install .[test]
         
