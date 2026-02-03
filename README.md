@@ -127,11 +127,15 @@ We don't publish binary wheels, because it must be compiled against suite-sparse
 
 `pip uninstall sparseqr` won't remove the generated libraries. It will list them with a warning.
 
-# Tested on
+# Tested
 
- - Python 3.9, 3.13.
- - Conda and not conda.
- - macOS, Ubuntu Linux, and Linux Mint.
+GitHub Continuous Integration (CI) tests:
+
+ - Python 3.9, 3.10, 3.11, 3.12, 3.13, 3.14.
+ - macOS, Ubuntu Linux, and Windows.
+ - conda (Windows) and not conda.
+
+Test manually with:
 
 ```
 python -m pytest
