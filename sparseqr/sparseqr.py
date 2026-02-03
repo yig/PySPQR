@@ -35,7 +35,7 @@ import _cffi_backend
 import scipy.sparse
 import numpy
 
-from .cffi_asarray import asarray
+from .cffi_asarray import asarray, ctype2dtype
 
 '''
 Helpful links for developers:
@@ -72,17 +72,30 @@ When no longer needed, the returned CHOLMOD sparse matrix must be deallocated us
 
     nnz = scipy_A.nnz
 
+    # Check if the sparse matrix has complex entries and adapt cholmod type accordingly
+    is_complex = numpy.issubdtype(scipy_A, complex)
+    cholmod_dtype = lib.CHOLMOD_COMPLEX if is_complex else lib.CHOLMOD_REAL
+
     ## There is a potential performance win if we know A is symmetric and we
     ## can get only the upper or lower triangular elements.
-    chol_A = lib.cholmod_l_allocate_triplet( scipy_A.shape[0], scipy_A.shape[1], nnz, 0, lib.CHOLMOD_REAL, cc )
+    chol_A = lib.cholmod_l_allocate_triplet( scipy_A.shape[0], scipy_A.shape[1], nnz, 0, cholmod_dtype, cc )
 
+    # Cast and copy indices
     Ai = ffi.cast( "SuiteSparse_long*", chol_A.i )
     Aj = ffi.cast( "SuiteSparse_long*", chol_A.j )
-    Avals = ffi.cast( "double*", chol_A.x )
-
     Ai[0:nnz] = scipy_A.row
     Aj[0:nnz] = scipy_A.col
-    Avals[0:nnz] = scipy_A.data
+
+    # Handle values based on dtype
+    Avals = ffi.cast( "double*", chol_A.x )
+    if is_complex:
+        # chol_A.x has size 2*nnz and real and imag parts are interleaved [real, imag, real, imag, ...]
+        array_element_size = ffi.sizeof(ffi.typeof(Avals).item)
+        Avals_view = numpy.frombuffer(ffi.buffer(Avals, 2*nnz * array_element_size), ctype2dtype["double"])
+        Avals_view[0::2] = scipy_A.data.real
+        Avals_view[1::2] = scipy_A.data.imag
+    else:
+        Avals[0:nnz] = scipy_A.data
 
     chol_A.nnz = nnz
 
@@ -125,7 +138,14 @@ def cholmodsparse2scipy( chol_A ):
     ##       doesn't and the cholmod memory fill get freed.
     i = asarray( ffi, Ai, nnz ).copy()
     j = asarray( ffi, Aj, nnz ).copy()
-    data = asarray( ffi, Adata, nnz ).copy()
+
+    if chol_A.xtype == lib.CHOLMOD_COMPLEX:
+        # read real and imag part from the buffer and create view as complex datatype
+        data = asarray(ffi, Adata, 2*nnz).copy()
+        complex_dtype = numpy.dtype(f"c{data.itemsize * 2}")
+        data = data.view(complex_dtype)
+    else:
+        data = asarray(ffi, Adata, nnz).copy()
 
     scipy_A = scipy.sparse.coo_matrix(
         ( data, ( i, j ) ),
