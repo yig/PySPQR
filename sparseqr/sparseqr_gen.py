@@ -50,7 +50,7 @@ ffibuilder.set_source( "sparseqr._sparseqr",
     library_dirs = library_dirs,
     libraries = libraries )
 
-ffibuilder.cdef("""
+ffibuilder.cdef(r"""
 // The int... is a magic thing which tells the compiler to figure out what the right
 // integer type is.
 typedef int... SuiteSparse_long;

@@ -103,12 +103,7 @@ or leave them in their directory and call it as a module.
 
 # Deploy
 
-1. Change the version in:
-
-    ```
-    sparseqr/__init__.py
-    pyproject.toml
-    ```
+1. Change the version in `sparseqr/__init__.py`
 
 2. Update `CHANGELOG.md`
 
@@ -138,11 +133,19 @@ We don't publish binary wheels, because it must be compiled against suite-sparse
  - Conda and not conda.
  - macOS, Ubuntu Linux, and Linux Mint.
 
-    PYTHONPATH='.:$PYTHONPATH' python3 test/test.py
+```
+python -m pytest
+```
+
+or
+
+```
+uv run --extra test pytest
+```
 
 # Dependencies
 
-These are installed via pip:
+These are listed as dependencies and will be installed automatically:
 
 * [SciPy/NumPy](http://www.scipy.org)
 * [cffi](http://cffi.readthedocs.io/)
