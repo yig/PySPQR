@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Add complex matrix support in `cholmodsparse2scipy` and `scipy2cholmodsparse`
 
+## [v1.5] - 2026-02-03
+### Added
+- Modern test cases that can be run with `uv run --extra test pytest` and run automatically with continuous integration on GitHub.
+
 ## [v1.4.1] - 2025-02-10
 ### Fixed
 - An import statement got lost in the 1.4 update.

@@ -1,9 +1,9 @@
 [project]
 name = "sparseqr"
-version = "1.4.1"
+dynamic = ["version"]
 description = "Python wrapper for SuiteSparseQR"
 authors = [{name = "Yotam Gingold", email = "yotam@yotamgingold.com"}]
-license = {text = "Public Domain CC0"}
+license = "CC0-1.0"
 readme = "README.md"
 keywords = ["suitesparse", "bindings", "wrapper", "scipy", "numpy", "qr-decomposition", "qr-factorisation", "sparse-matrix", "sparse-linear-system", "sparse-linear-solver"]
 
@@ -12,17 +12,28 @@ requires-python = ">= 3.8"
 dependencies = [
     "numpy >1.2",
     "scipy >= 1.0",
-    "cffi >= 1.0",
-    "setuptools >35",
+    "cffi >= 1.0"
 ]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
 
 [project.urls]
 homepage = "https://github.com/yig/PySPQR"
 source = "https://github.com/yig/PySPQR"
 
+[tool.pytest.ini_options]
+testpaths = ["test"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v"
+
 [build-system]
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.dynamic]
+version = {attr = "sparseqr.__version__"}
 
 #[tool.setuptools.packages.find]
 # include = ["test/*.py", "README.md", "LICENSE.md"]

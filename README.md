@@ -103,12 +103,7 @@ or leave them in their directory and call it as a module.
 
 # Deploy
 
-1. Change the version in:
-
-    ```
-    sparseqr/__init__.py
-    pyproject.toml
-    ```
+1. Change the version in `sparseqr/__init__.py`
 
 2. Update `CHANGELOG.md`
 
@@ -132,17 +127,29 @@ We don't publish binary wheels, because it must be compiled against suite-sparse
 
 `pip uninstall sparseqr` won't remove the generated libraries. It will list them with a warning.
 
-# Tested on
+# Tested
 
- - Python 3.9, 3.13.
- - Conda and not conda.
- - macOS, Ubuntu Linux, and Linux Mint.
+GitHub Continuous Integration (CI) tests:
 
-    PYTHONPATH='.:$PYTHONPATH' python3 test/test.py
+ - Python 3.9, 3.10, 3.11, 3.12, 3.13, 3.14.
+ - macOS, Ubuntu Linux, and Windows.
+ - conda (Windows) and not conda (Linux/macOS). I tested conda on macOS manually at one point.
+
+Test manually with:
+
+```
+python -m pytest
+```
+
+or
+
+```
+uv run --extra test pytest
+```
 
 # Dependencies
 
-These are installed via pip:
+These are listed as dependencies and will be installed automatically:
 
 * [SciPy/NumPy](http://www.scipy.org)
 * [cffi](http://cffi.readthedocs.io/)

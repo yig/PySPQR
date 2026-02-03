@@ -1,3 +1,11 @@
 *.pyc
 *.pyo
 _spqr.*
+*.so
+*.c
+*.o
+dist
+
+venv
+venvs
+.venv

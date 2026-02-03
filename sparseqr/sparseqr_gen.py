@@ -17,6 +17,9 @@ libraries = ['spqr']
 if 'CONDA_PREFIX' in os.environ:
     include_dirs.append( os.path.join(os.environ['CONDA_PREFIX'], 'include', 'suitesparse') )
     library_dirs.append( os.path.join(os.environ['CONDA_PREFIX'], 'lib') )
+    ## For Windows:
+    include_dirs.append( os.path.join(os.environ['CONDA_PREFIX'], 'Library', 'include', 'suitesparse') )
+    library_dirs.append( os.path.join(os.environ['CONDA_PREFIX'], 'Library', 'lib') )
 
 ## Otherwise, add common system-wide directories
 else:
@@ -31,8 +34,9 @@ else:
 
 if platform.system() == 'Windows':
     # https://github.com/yig/PySPQR/issues/6
-    libraries.extend( ['amd','btf','camd','ccolamd','cholmod','colamd','cxsparse'
-'klu','lapack','ldl','lumfpack','metis','suitesparseconfig','libblas'] )
+    ## Update: This list fails for `windows-latest` on GitHub. Some are missing. The only needed library is `cholmod`.
+    # libraries.extend( ['amd','btf','camd','ccolamd','cholmod','colamd','cxsparse', 'klu','lapack','ldl','lumfpack','metis','suitesparseconfig','libblas'] )
+    libraries.extend( ['cholmod'] )
 
 ffibuilder = FFI()
 
@@ -50,7 +54,7 @@ ffibuilder.set_source( "sparseqr._sparseqr",
     library_dirs = library_dirs,
     libraries = libraries )
 
-ffibuilder.cdef("""
+ffibuilder.cdef(r"""
 // The int... is a magic thing which tells the compiler to figure out what the right
 // integer type is.
 typedef int... SuiteSparse_long;
