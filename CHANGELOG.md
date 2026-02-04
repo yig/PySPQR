@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v1.5.1] - 2026-02-03
+### Added
+- Added complex matrix support in `cholmoddense2numpy` and `numpy2cholmoddense` so that `solve()` works.
+
 ## [v1.5] - 2026-02-03
 ### Added
 - Added complex matrix support in `cholmodsparse2scipy` and `scipy2cholmodsparse`.

@@ -170,19 +170,41 @@ When no longer needed, the returned CHOLMOD dense matrix must be deallocated usi
     nrow = numpy_A.shape[0]
     ncol = numpy_A.shape[1]
     lda  = nrow  # cholmod_dense is column-oriented
-    chol_A = lib.cholmod_l_allocate_dense( nrow, ncol, lda, lib.CHOLMOD_REAL, cc )
+
+    # Check if the array has complex entries and adapt cholmod type accordingly
+    is_complex = numpy.issubdtype(numpy_A.dtype, numpy.complexfloating)
+    cholmod_dtype = lib.CHOLMOD_COMPLEX if is_complex else lib.CHOLMOD_REAL
+
+    chol_A = lib.cholmod_l_allocate_dense( nrow, ncol, lda, cholmod_dtype, cc )
     if chol_A == ffi.NULL:
         raise RuntimeError("Failed to allocate chol_A")
     Adata = ffi.cast( "double*", chol_A.x )
-    for j in range(ncol):  # FIXME inefficient?
-        Adata[(j*lda):((j+1)*lda)] = numpy_A[:,j]
+
+    if is_complex:
+        # chol_A.x has size 2*nrow*ncol and real and imag parts are interleaved [real, imag, real, imag, ...]
+        array_element_size = ffi.sizeof(ffi.typeof(Adata).item)
+        Adata_view = numpy.frombuffer(ffi.buffer(Adata, 2*nrow*ncol * array_element_size), ctype2dtype["double"])
+        for j in range(ncol):
+            col_data = numpy_A[:,j]
+            Adata_view[(j*lda*2):((j+1)*lda*2):2] = col_data.real
+            Adata_view[(j*lda*2)+1:((j+1)*lda*2):2] = col_data.imag
+    else:
+        for j in range(ncol):  # FIXME inefficient?
+            Adata[(j*lda):((j+1)*lda)] = numpy_A[:,j]
     return chol_A
 
 def cholmoddense2numpy( chol_A ):
     '''Convert a CHOLMOD dense matrix to a NumPy array.'''
     Adata = ffi.cast( "double*", chol_A.x )
 
-    result = asarray( ffi, Adata, chol_A.nrow*chol_A.ncol ).copy()
+    if chol_A.xtype == lib.CHOLMOD_COMPLEX:
+        # read real and imag part from the buffer and create view as complex datatype
+        result = asarray(ffi, Adata, 2*chol_A.nrow*chol_A.ncol).copy()
+        complex_dtype = numpy.dtype(f"c{result.itemsize * 2}")
+        result = result.view(complex_dtype)
+    else:
+        result = asarray( ffi, Adata, chol_A.nrow*chol_A.ncol ).copy()
+
     result = result.reshape( (chol_A.nrow, chol_A.ncol), order='F' )
     return result
 
