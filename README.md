@@ -125,7 +125,7 @@ or leave them in their directory and call it as a module.
 
     ```
     uv build --sdist
-    UV_PUBLISH_TOKEN=<token> uv publish
+    uv publish
     ```
 
 We don't publish binary wheels, because it must be compiled against suite-sparse as a system dependency. We could publish a `none-any` wheel, which would cause compilation to happen the first time the module is imported rather than when it is installed. Is there a point to that?
