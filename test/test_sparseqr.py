@@ -138,6 +138,17 @@ class TestSolve:
         assert x is not None
         np.testing.assert_allclose(x, x_true, rtol=1e-10)
 
+    def test_solve_dense_rhs_single_ordering(self):
+        """Test solving Ax=b with single dense RHS vector."""
+        # Create a well-conditioned matrix
+        A = scipy.sparse.diags([1, 2, 3, 4, 5], format='coo', dtype=np.float64) + scipy.sparse.rand(5, 5, density=0.1, random_state=42)
+        b = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+
+        # let sparseqr choose the best column ordering
+        x = sparseqr.solve(A, b, tolerance=0, ordering='best')
+
+        assert x is not None, "solve() returned None"
+        assert x.shape == (5,), f"Solution shape wrong: {x.shape}"
 
 class TestRZ:
     """Tests for sparseqr.rz() function."""
