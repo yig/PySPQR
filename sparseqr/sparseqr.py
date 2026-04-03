@@ -241,7 +241,8 @@ def cholmod_free_dense( A ):
 
 
 ## Solvers
-def rz(A, B, tolerance = None):
+def rz(A, B, tolerance = None, ordering = None):
+
     getCTX=int(0)
     chol_A = scipy2cholmodsparse( A )
     chol_b = numpy2cholmoddense(  B )
@@ -250,10 +251,15 @@ def rz(A, B, tolerance = None):
     chol_E = ffi.new("SuiteSparse_long**")
     if tolerance is None:
         tolerance=0.
-        
+
+    if ordering is None:
+        ordering = lib.SPQR_ORDERING_DEFAULT
+    elif isinstance(ordering, str) and ordering=='best':
+        ordering = lib.SPQR_ORDERING_BEST
+
     rank = lib.SuiteSparseQR_C(
         ## Input
-        lib.SPQR_ORDERING_DEFAULT,
+        ordering,
         tolerance,
         A.shape[1],
         getCTX,
@@ -288,7 +294,7 @@ def rz(A, B, tolerance = None):
     return scipy_Z, scipy_R, E, rank
 
 
-def qr( A, tolerance = None, economy = None ):
+def qr( A, tolerance = None, economy = None, ordering = None):
     '''
     Given a sparse matrix A,
     returns Q, R, E, rank such that:
@@ -337,6 +343,11 @@ def qr( A, tolerance = None, economy = None ):
 
     Be aware that this approach is slow and takes a lot of memory, because qr() explicitly constructs Q.
     Unless you have a large number of systems to solve with the same A, solve() is much faster.
+
+    The optional 'ordering' parameter specifies how sparseqr orders the columns of
+        A during the solution.  if None, the default ordering will be used.
+        Specify 'best' to let sparseqr choose the ordering, or specify an
+        integer to use one of the orderings listed in SparseQR_definitions.h
     '''
 
     chol_A = scipy2cholmodsparse( A )
@@ -344,6 +355,11 @@ def qr( A, tolerance = None, economy = None ):
     chol_Q = ffi.new("cholmod_sparse**")
     chol_R = ffi.new("cholmod_sparse**")
     chol_E = ffi.new("SuiteSparse_long**")
+
+    if ordering is None :
+        ordering = lib.SPQR_ORDERING_DEFAULT
+    elif isinstance(ordering, str) and ordering=='best':
+        ordering = lib.SPQR_ORDERING_BEST
 
     if tolerance is None: tolerance = lib.SPQR_DEFAULT_TOL
 
@@ -357,7 +373,7 @@ def qr( A, tolerance = None, economy = None ):
 
     rank = lib.SuiteSparseQR_C_QR(
         ## Input
-        lib.SPQR_ORDERING_DEFAULT,
+        ordering,
         tolerance,
         econ,
         chol_A,
@@ -393,10 +409,10 @@ def qr( A, tolerance = None, economy = None ):
     return scipy_Q, scipy_R, E, rank
 
 
-def qr_factorize( A, tolerance = None):
+def qr_factorize( A, tolerance = None, ordering = None):
     '''
     Given a sparse matrix A,
-    returns a QR factorization in householder form    
+    returns a QR factorization in householder form
 
     If optional `tolerance` parameter is negative, it has the following meanings:
         #define SPQR_DEFAULT_TOL ...       /* if tol <= -2, the default tol is used */
@@ -406,15 +422,25 @@ def qr_factorize( A, tolerance = None):
 
         The performance-optimal format for A is scipy.sparse.coo_matrix.
 
+    The optional 'ordering' parameter specifies how sparseqr orders the columns of
+        A during the solution.  if None, the default ordering will be used.
+        Specify 'best' to let sparseqr choose the ordering,
+        or specify an integer to use one of the orderings listed in
+        SparseQR_definitions.h
     '''
 
     chol_A = scipy2cholmodsparse( A )
 
     if tolerance is None: tolerance = lib.SPQR_DEFAULT_TOL
 
+    if ordering is None :
+        ordering = lib.SPQR_ORDERING_DEFAULT
+    elif isinstance(ordering, str) and ordering=='best':
+        ordering = lib.SPQR_ORDERING_BEST
+
     QR = lib.SuiteSparseQR_C_factorize(
         ## Input
-        lib.SPQR_ORDERING_DEFAULT,
+        ordering,
         tolerance,
         chol_A,
         cc
@@ -431,7 +457,7 @@ def qmult( QR, X, method=1):
     '''
     Given a QR factorization struct
         a dense matrix
-    returns Q applied to X in a dense matrix    
+    returns Q applied to X in a dense matrix
 
     From the suitesparse documentation:
     /*
@@ -450,7 +476,7 @@ def qmult( QR, X, method=1):
 
     chol_Y = lib.SuiteSparseQR_C_qmult(
         ## Input
-        method, 
+        method,
         QR,
         chol_X,
         cc
@@ -464,7 +490,7 @@ def qmult( QR, X, method=1):
     return numpy_Y
 
 
-def solve( A, b, tolerance = None ):
+def solve( A, b, tolerance = None, ordering=None ):
     '''
     Given a sparse m-by-n matrix A, and dense or sparse m-by-k matrix (storing k RHS vectors) b,
     solve A x = b in the least-squares sense.
@@ -481,13 +507,25 @@ def solve( A, b, tolerance = None ):
     If optional `tolerance` parameter is negative, it has the following meanings:
         #define SPQR_DEFAULT_TOL ...       /* if tol <= -2, the default tol is used */
         #define SPQR_NO_TOL ...            /* if -2 < tol < 0, then no tol is used */
-    '''
-    if isinstance( b, scipy.sparse.spmatrix ):
-        return _solve_with_sparse_rhs( A, b, tolerance )
-    else:
-        return _solve_with_dense_rhs(  A, b, tolerance )
 
-def _solve_with_dense_rhs( A, b, tolerance = None ):
+    The optional 'ordering' parameter specifies how sparseqr orders the columns of
+        A during the solution.  if None, the default ordering will be used.
+        Specify 'best' to let sparseqr choose the ordering,
+        or specify an integer to use one of the orderings listed in
+        SparseQR_definitions.h
+    '''
+
+    if ordering is None :
+        ordering = lib.SPQR_ORDERING_DEFAULT
+    elif isinstance(ordering, str) and ordering=='best':
+        ordering = lib.SPQR_ORDERING_BEST
+
+    if isinstance( b, scipy.sparse.spmatrix ):
+        return _solve_with_sparse_rhs( A, b, tolerance, ordering = ordering )
+    else:
+        return _solve_with_dense_rhs(  A, b, tolerance, ordering = ordering )
+
+def _solve_with_dense_rhs( A, b, tolerance = None, ordering=None ):
     '''
     Given a sparse m-by-n matrix A, and dense m-by-k matrix (storing k RHS vectors) b,
     solve A x = b in the least-squares sense.
@@ -510,7 +548,7 @@ def _solve_with_dense_rhs( A, b, tolerance = None ):
 
     chol_x = lib.SuiteSparseQR_C_backslash(
         ## Input
-        lib.SPQR_ORDERING_DEFAULT,
+        ordering,
         tolerance,
         chol_A,
         chol_b,
@@ -528,9 +566,10 @@ def _solve_with_dense_rhs( A, b, tolerance = None ):
     cholmod_free_sparse( chol_A )
     cholmod_free_dense(  chol_b )
     cholmod_free_dense(  chol_x )
+
     return numpy_x
 
-def _solve_with_sparse_rhs( A, b, tolerance = None ):
+def _solve_with_sparse_rhs( A, b, tolerance = None, ordering=None ):
     '''
     Given a sparse m-by-n matrix A, and sparse m-by-k matrix (storing k RHS vectors) b,
     solve A x = b in the least-squares sense.
@@ -544,6 +583,12 @@ def _solve_with_sparse_rhs( A, b, tolerance = None ):
     If optional `tolerance` parameter is negative, it has the following meanings:
         #define SPQR_DEFAULT_TOL ...       /* if tol <= -2, the default tol is used */
         #define SPQR_NO_TOL ...            /* if -2 < tol < 0, then no tol is used */
+
+    The optional 'ordering' parameter specifies how sparseqr orders the columns of
+        A during the solution.  if None, the default ordering will be used.
+        Specify 'best' to let sparseqr choose the ordering,
+        or specify an integer to use one of the orderings listed in
+        SparseQR_definitions.h
     '''
 
     chol_A = scipy2cholmodsparse( A )
@@ -553,7 +598,7 @@ def _solve_with_sparse_rhs( A, b, tolerance = None ):
 
     chol_x = lib.SuiteSparseQR_C_backslash_sparse(
         ## Input
-        lib.SPQR_ORDERING_DEFAULT,
+        ordering,
         tolerance,
         chol_A,
         chol_b,
