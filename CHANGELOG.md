@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [v1.6] - 2026-04-02
 ### Added
 - Added `ordering` parameter to `solve()`, `qr()`, `rz()`, and `qr_factorize()`. Thanks to Ben Smith @SmithB.
+### Fixed
+- An internal copy of the permutation vector returned by `qr()` was not being freed, causing a memory leak.
 
 ## [v1.5.1] - 2026-02-03
 ### Added

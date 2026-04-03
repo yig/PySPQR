@@ -79,6 +79,40 @@ class TestQR:
         residual = abs(Q @ R - M @ E_matrix).sum()
         assert residual < 1e-10
 
+    def test_qr_ordering(self):
+        """Test QR decomposition with all ordering options."""
+        M = scipy.sparse.rand(10, 10, density=0.2, random_state=42)
+
+        orderings = [
+            'best',
+            sparseqr.lib.SPQR_ORDERING_FIXED,
+            sparseqr.lib.SPQR_ORDERING_NATURAL,
+            sparseqr.lib.SPQR_ORDERING_COLAMD,
+            sparseqr.lib.SPQR_ORDERING_GIVEN,
+            sparseqr.lib.SPQR_ORDERING_CHOLMOD,
+            sparseqr.lib.SPQR_ORDERING_AMD,
+            sparseqr.lib.SPQR_ORDERING_METIS,
+            sparseqr.lib.SPQR_ORDERING_DEFAULT,
+            sparseqr.lib.SPQR_ORDERING_BEST,
+            sparseqr.lib.SPQR_ORDERING_BESTAMD,
+        ]
+
+        # Try all orderings and verify Q*R = M*E
+        for ordering in orderings:
+            Q, R, E, rank = sparseqr.qr(M, tolerance=0, ordering=ordering)
+            assert Q is not None, f"Q is None for ordering {ordering}"
+            assert R is not None, f"R is None for ordering {ordering}"
+            assert isinstance(rank, (int, np.integer)), f"rank is not int for ordering {ordering}"
+            if E is not None:
+                assert np.all(E >= 0)
+                assert np.all(E < M.shape[1])
+                E_matrix = sparseqr.permutation_vector_to_matrix(E)
+            else:
+                assert ordering == sparseqr.lib.SPQR_ORDERING_FIXED
+                E_matrix = scipy.sparse.eye(M.shape[1])
+            
+            residual = abs(Q @ R - M @ E_matrix).sum()
+            assert residual < 1e-10, f"QR decomposition residual too large for ordering {ordering}: {residual}"
 
 class TestSolve:
     """Tests for sparseqr.solve() function."""
@@ -185,6 +219,37 @@ class TestRZ:
         assert R is not None
         assert isinstance(rank, (int, np.integer))
 
+    def test_rz_ordering(self):
+        """Test rz() with all ordering options."""
+        A = scipy.sparse.rand(20, 10, density=0.1, random_state=42)
+        b = np.random.RandomState(42).random(20)
+
+        orderings = [
+            'best',
+            sparseqr.lib.SPQR_ORDERING_FIXED,
+            sparseqr.lib.SPQR_ORDERING_NATURAL,
+            sparseqr.lib.SPQR_ORDERING_COLAMD,
+            sparseqr.lib.SPQR_ORDERING_GIVEN,
+            sparseqr.lib.SPQR_ORDERING_CHOLMOD,
+            sparseqr.lib.SPQR_ORDERING_AMD,
+            sparseqr.lib.SPQR_ORDERING_METIS,
+            sparseqr.lib.SPQR_ORDERING_DEFAULT,
+            sparseqr.lib.SPQR_ORDERING_BEST,
+            sparseqr.lib.SPQR_ORDERING_BESTAMD,
+        ]
+
+        # Compute with the default ordering
+        Z_default, R_default, E_default, rank_default = sparseqr.rz(A, b, tolerance=0)
+        assert Z_default is not None, "rz() returned None for Z"
+
+        # Try all orderings
+        for ordering in orderings:
+            Z, R, E, rank = sparseqr.rz(A, b, tolerance=0, ordering=ordering)
+            assert Z is not None, f"rz() returned None for Z with ordering {ordering}"
+            assert R is not None, f"rz() returned None for R with ordering {ordering}"
+            assert isinstance(rank, (int, np.integer)), f"rank is not int for ordering {ordering}"
+            assert Z.shape[0] == 10, f"Z rows should be 10, got {Z.shape[0]} for ordering {ordering}"
+
     def test_rz_output_shapes(self):
         """Test rz() returns correct shapes."""
         m, n = 15, 8
@@ -206,6 +271,34 @@ class TestQRFactorize:
         QR = sparseqr.qr_factorize(M)
 
         assert QR is not None
+
+    def test_qr_factorize_ordering(self):
+        """Test qr_factorize() with all ordering options."""
+        M = scipy.sparse.rand(100, 100, density=0.05, random_state=42)
+
+        orderings = [
+            'best',
+            sparseqr.lib.SPQR_ORDERING_FIXED,
+            sparseqr.lib.SPQR_ORDERING_NATURAL,
+            sparseqr.lib.SPQR_ORDERING_COLAMD,
+            sparseqr.lib.SPQR_ORDERING_GIVEN,
+            sparseqr.lib.SPQR_ORDERING_CHOLMOD,
+            sparseqr.lib.SPQR_ORDERING_AMD,
+            sparseqr.lib.SPQR_ORDERING_METIS,
+            sparseqr.lib.SPQR_ORDERING_DEFAULT,
+            sparseqr.lib.SPQR_ORDERING_BEST,
+            sparseqr.lib.SPQR_ORDERING_BESTAMD,
+        ]
+
+        X = np.zeros((M.shape[0], 1))
+        X[-1, 0] = 1
+
+        # Try all orderings
+        for ordering in orderings:
+            QR = sparseqr.qr_factorize(M, ordering=ordering)
+            assert QR is not None, f"qr_factorize() returned None for ordering {ordering}"
+            Y = sparseqr.qmult(QR, X)
+            assert Y.shape == (100, 1), f"Y shape wrong for ordering {ordering}: {Y.shape}"
 
     def test_qmult_basic(self):
         """Test qmult() with Householder form QR."""

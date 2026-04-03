@@ -300,6 +300,8 @@ def qr( A, tolerance = None, economy = None, ordering = None):
     returns Q, R, E, rank such that:
         Q*R = A*permutation_vector_to_matrix(E)
     rank is the estimated rank of A.
+    (If the returned E is None, then the permutation is the identity.
+    This should only happen when ordering is `lib.SPQR_ORDERING_FIXED`.)
 
     If optional `tolerance` parameter is negative, it has the following meanings:
         #define SPQR_DEFAULT_TOL ...       /* if tol <= -2, the default tol is used */
@@ -388,7 +390,7 @@ def qr( A, tolerance = None, economy = None, ordering = None):
     scipy_R = cholmodsparse2scipy( chol_R[0] )
 
     ## If chol_E is null, there was no permutation.
-    if chol_E == ffi.NULL:
+    if chol_E[0] == ffi.NULL:
         E = None
     else:
         ## Have to pass through list().
@@ -403,9 +405,8 @@ def qr( A, tolerance = None, economy = None, ordering = None):
     cholmod_free_sparse( chol_Q[0] )
     cholmod_free_sparse( chol_R[0] )
     cholmod_free_sparse( chol_A )
-    ## Apparently we don't need to do this. (I get a malloc error.)
-    # lib.cholmod_l_free( A.shape[1], ffi.sizeof("SuiteSparse_long"), chol_E, cc )
-
+    if E is not None: lib.cholmod_l_free( A.shape[1], ffi.sizeof("SuiteSparse_long"), chol_E[0], cc )
+    
     return scipy_Q, scipy_R, E, rank
 
 
