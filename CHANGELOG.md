@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [v1.6] - 2026-04-02
+### Added
+- Added `ordering` parameter to `solve()`, `qr()`, `rz()`, and `qr_factorize()`. Thanks to Ben Smith @SmithB.
+
 ## [v1.5.1] - 2026-02-03
 ### Added
 - Added complex matrix support in `cholmoddense2numpy` and `numpy2cholmoddense` so that `solve()` works.

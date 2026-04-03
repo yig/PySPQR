@@ -346,8 +346,8 @@ def qr( A, tolerance = None, economy = None, ordering = None):
 
     The optional 'ordering' parameter specifies how sparseqr orders the columns of
         A during the solution.  if None, the default ordering will be used.
-        Specify 'best' to let sparseqr choose the ordering, or specify an
-        integer to use one of the orderings listed in SparseQR_definitions.h
+        Specify 'best' to let sparseqr choose the ordering, or specify one
+        of the orderings listed in SparseQR_definitions.h via `sparseqr.lib.SPQR_ORDERING_*`.
     '''
 
     chol_A = scipy2cholmodsparse( A )
@@ -424,9 +424,8 @@ def qr_factorize( A, tolerance = None, ordering = None):
 
     The optional 'ordering' parameter specifies how sparseqr orders the columns of
         A during the solution.  if None, the default ordering will be used.
-        Specify 'best' to let sparseqr choose the ordering,
-        or specify an integer to use one of the orderings listed in
-        SparseQR_definitions.h
+        Specify 'best' to let sparseqr choose the ordering, or specify one
+        of the orderings listed in SparseQR_definitions.h via `sparseqr.lib.SPQR_ORDERING_*`.
     '''
 
     chol_A = scipy2cholmodsparse( A )
@@ -490,7 +489,7 @@ def qmult( QR, X, method=1):
     return numpy_Y
 
 
-def solve( A, b, tolerance = None, ordering=None ):
+def solve( A, b, tolerance = None, ordering = None ):
     '''
     Given a sparse m-by-n matrix A, and dense or sparse m-by-k matrix (storing k RHS vectors) b,
     solve A x = b in the least-squares sense.
@@ -510,9 +509,8 @@ def solve( A, b, tolerance = None, ordering=None ):
 
     The optional 'ordering' parameter specifies how sparseqr orders the columns of
         A during the solution.  if None, the default ordering will be used.
-        Specify 'best' to let sparseqr choose the ordering,
-        or specify an integer to use one of the orderings listed in
-        SparseQR_definitions.h
+        Specify 'best' to let sparseqr choose the ordering, or specify one
+        of the orderings listed in SparseQR_definitions.h via `sparseqr.lib.SPQR_ORDERING_*`.
     '''
 
     if ordering is None :
@@ -525,7 +523,7 @@ def solve( A, b, tolerance = None, ordering=None ):
     else:
         return _solve_with_dense_rhs(  A, b, tolerance, ordering = ordering )
 
-def _solve_with_dense_rhs( A, b, tolerance = None, ordering=None ):
+def _solve_with_dense_rhs( A, b, tolerance = None, ordering = None ):
     '''
     Given a sparse m-by-n matrix A, and dense m-by-k matrix (storing k RHS vectors) b,
     solve A x = b in the least-squares sense.
@@ -569,7 +567,7 @@ def _solve_with_dense_rhs( A, b, tolerance = None, ordering=None ):
 
     return numpy_x
 
-def _solve_with_sparse_rhs( A, b, tolerance = None, ordering=None ):
+def _solve_with_sparse_rhs( A, b, tolerance = None, ordering = None ):
     '''
     Given a sparse m-by-n matrix A, and sparse m-by-k matrix (storing k RHS vectors) b,
     solve A x = b in the least-squares sense.
@@ -586,9 +584,8 @@ def _solve_with_sparse_rhs( A, b, tolerance = None, ordering=None ):
 
     The optional 'ordering' parameter specifies how sparseqr orders the columns of
         A during the solution.  if None, the default ordering will be used.
-        Specify 'best' to let sparseqr choose the ordering,
-        or specify an integer to use one of the orderings listed in
-        SparseQR_definitions.h
+        Specify 'best' to let sparseqr choose the ordering, or specify one
+        of the orderings listed in SparseQR_definitions.h via `sparseqr.lib.SPQR_ORDERING_*`.
     '''
 
     chol_A = scipy2cholmodsparse( A )

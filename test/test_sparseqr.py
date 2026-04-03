@@ -144,11 +144,32 @@ class TestSolve:
         A = scipy.sparse.diags([1, 2, 3, 4, 5], format='coo', dtype=np.float64) + scipy.sparse.rand(5, 5, density=0.1, random_state=42)
         b = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
 
-        # let sparseqr choose the best column ordering
-        x = sparseqr.solve(A, b, tolerance=0, ordering='best')
+        orderings = [
+            'best',
+            sparseqr.lib.SPQR_ORDERING_FIXED,
+            sparseqr.lib.SPQR_ORDERING_NATURAL,
+            sparseqr.lib.SPQR_ORDERING_COLAMD,
+            sparseqr.lib.SPQR_ORDERING_GIVEN,
+            sparseqr.lib.SPQR_ORDERING_CHOLMOD,
+            sparseqr.lib.SPQR_ORDERING_AMD,
+            sparseqr.lib.SPQR_ORDERING_METIS,
+            sparseqr.lib.SPQR_ORDERING_DEFAULT,
+            sparseqr.lib.SPQR_ORDERING_BEST,
+            sparseqr.lib.SPQR_ORDERING_BESTAMD,
+        ]
+        
+        # Compute with the default ordering
+        x_default = sparseqr.solve(A, b, tolerance=0)
+        assert x_default is not None, "solve() returned None"
+        assert x_default.shape == (5,), f"Solution shape wrong: {x_default.shape}"
 
-        assert x is not None, "solve() returned None"
-        assert x.shape == (5,), f"Solution shape wrong: {x.shape}"
+        # Try all orderings
+        for ordering in orderings:
+            x = sparseqr.solve(A, b, tolerance=0, ordering=ordering)
+            assert x is not None, f"solve() returned None for ordering {ordering}"
+            assert x.shape == (5,), f"Solution shape wrong for ordering {ordering}: {x.shape}"
+            # The solution should be the same regardless of ordering, since it's a well-conditioned system
+            np.testing.assert_allclose(x, x_default, rtol=1e-10, err_msg=f"Solution differs for ordering {ordering}")
 
 class TestRZ:
     """Tests for sparseqr.rz() function."""
